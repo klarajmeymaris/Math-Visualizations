@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
+        <title>Epsilon Delta Visualization</title>
+        <!--This sets up connecting to Babylon-->
+        <script src="https://cdn.babylonjs.com/babylon.max.js"></script>
+        <style>
+
+            html,
+            body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="renderCanvas"></canvas>
+        <script>
+            window.addEventListener('DOMContentLoaded', async function () {
+                // get the canvas DOM element
+                const canvas = document.getElementById('renderCanvas');
+                // load the 3D engine
+                const engine = new BABYLON.Engine(canvas, true);
+                // createScene function that creates and return the scene
+                const createScene = async function () {
+                    //scene
+                    const scene = new BABYLON.Scene(engine);
+                    scene.clearColor = new BABYLON.Color3(0.4, 0.7, 0.9);
+
+                    //camera
+                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 1, -5), scene);
+                    camera.attachControl(canvas, true);
+                    //keyboard movement
+                    camera.keysUp.push(87);
+                    camera.keysDown.push(83);
+                    camera.keysLeft.push(65);
+                    camera.keysRight.push(68);
+                    scene.onKeyboardObservable.add((kbInfo) => {
+                        switch (kbInfo.type) {
+                            case BABYLON.KeyboardEventTypes.KEYDOWN:
+                                if (kbInfo.event.key === "e") {
+                                    camera.cameraDirection.y += 0.2;
+                                }
+                                if (kbInfo.event.key === "q") {
+                                    camera.cameraDirection.y -= 0.2;
+                                }
+                                break;
+                        }
+                    });
+
+
+                    //light
+                    const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+                    hemiLight.intensity = 1.0;
+
+                    //ground
+                    const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 100, height: 100 }, scene);
+                    ground.position.y = -0.5;
+
+                    const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+                    groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.5, 0.02);
+                    ground.material = groundMaterial;
+                                        
+                    //graphs
+                    function createGraphMesh(scene, size, step, heightFunction) {
+                        const graphPositions = [];
+                        const graphIndices = [];
+                        const graphNormals = [];
+                        const graphColors = [];
+
+                        const cols = Math.floor((2 * size) / step) + 1;
+                        const rows = cols;
+
+                        let minY = Infinity;
+                        let maxY = -Infinity;
+
+                        // Generate vertex positions
+                        for (let row = 0; row < rows; row++) {
+                            const x = -size + row * step;
+                            for (let col = 0; col < cols; col++) {
+                                const z = -size + col * step;
+                                const y = heightFunction(x, z);
+                                graphPositions.push(x, y, z);
+                                minY = Math.min(minY, y);
+                                maxY = Math.max(maxY, y);
+                            }
+                        }
+
+                        // Generate triangle indices
+
+                        for (let row = 0; row < rows - 1; row++) {
+                            for (let col = 0; col < cols - 1; col++) {
+                                const i0 = row * cols + col;
+                                const i1 = i0 + 1;
+                                const i2 = i0 + cols;
+                                const i3 = i2 + 1;
+
+                                if (i3 < graphPositions.length / 3) {
+                                    graphIndices.push(i0, i1, i2);
+                                    graphIndices.push(i1, i3, i2);
+                                }
+
+                            }
+                        }
+
+                        // Assign vertex colors based on height
+                        for (let i = 0; i < graphPositions.length; i += 3) {
+                            const y = graphPositions[i + 1];
+                            const t = (y - minY) / (maxY - minY);
+                            const r = t;
+                            const g = 0.2;
+                            const b = 1 - t;
+                            graphColors.push(r, g, b, 1);
+                        }
+
+                        // Compute normals and apply to mesh
+                        const graphMesh = new BABYLON.Mesh("graph", scene);
+                        const vertexData = new BABYLON.VertexData();
+                        BABYLON.VertexData.ComputeNormals(graphPositions, graphIndices, graphNormals);
+
+                        vertexData.positions = graphPositions;
+                        vertexData.indices = graphIndices;
+                        vertexData.normals = graphNormals;
+                        vertexData.colors = graphColors;
+                        vertexData.applyToMesh(graphMesh);
+
+                        // Material setup
+                        const graphMaterial = new BABYLON.StandardMaterial("graphMaterial", scene);
+                        graphMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+                        graphMaterial.vertexColorEnabled = true;
+                        graphMaterial.backFaceCulling = false;
+                        graphMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full brightness
+                        graphMesh.material = graphMaterial;
+
+                        return graphMesh;
+                    };
+                    const f1 = (x, z) => 0.5*Math.sin(x) * Math.cos(z) + 0.5; //lots of bumps
+                    const f2 = (x, z) => Math.exp(-0.1 * (x * x + z * z)) * 3; // 1 bump
+                    const f3 = (x, z) => Math.sin(Math.sqrt(x * x + z * z)*2) * 1/2 + 0.5; // A ripple pattern
+                    const f4 = (x, z) => (x+z)*(x+z)/100+Math.sin(x);
+                    const graph1 = createGraphMesh(scene, 10, 0.1, f1);
+                    const graph2 = createGraphMesh(scene, 10, 0.1, f2);
+                    const graph3 = createGraphMesh(scene, 10, 0.1, f3);
+                    const graph4 = createGraphMesh(scene, 10, 0.1, f4);
+                    graph1.position = new BABYLON.Vector3(0,0.1,21);
+                    graph2.position = new BABYLON.Vector3(-21,0.1,0);
+                    graph3.position = new BABYLON.Vector3(21,0.1,0);
+                    graph4.position = new BABYLON.Vector3(0,0.5,-21);
+
+                    //vr set up
+                    const xr = await scene.createDefaultXRExperienceAsync({
+                            floorMeshes: [graph1,graph2,graph3,ground], // Use your custom ground for teleportation
+                            disableTeleportation: false,
+                        })
+                
+                    return scene;
+                }
+
+                // call the createScene function
+                var scene = await createScene();
+
+                // run the render loop
+                engine.runRenderLoop(function () {
+                    scene.render();
+                });
+
+                // the canvas/window resize event handler
+                window.addEventListener('resize', function () {
+                    engine.resize();
+                });
+            });
+        </script>
+    </body>
+</html>
