@@ -231,7 +231,7 @@
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const camera = scene.getCameraByName('camera')
-                    const v_position = camera.position.subtract(BABYLON.Vector3.Zero());
+                    const v_position = xrCamera.position.subtract(BABYLON.Vector3.Zero());
                     const cylinder = scene.getMeshByName('cylinder');
                     const distance = Math.sqrt(v_position.x*v_position.x+v_position.z*v_position.z)
                     cylinder.scaling.z = distance-1;
@@ -247,4 +247,5 @@
             });
         </script>
     </body>
+
 </html>
