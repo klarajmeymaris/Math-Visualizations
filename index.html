@@ -158,7 +158,7 @@
                     // const graph3 = createGraphMesh(scene, 10, 0.1, f3);
                     // const graph4 = createGraphMesh(scene, 10, 0.1, f4);
                     const graph5 = createGraphMesh(scene, 3, 0.01, f5);
-                    const graph6 = createGraphMesh(scene, 100, 0.2, f5);
+                    const graph6 = createGraphMesh(scene, 100, 0.5, f5);
                     // graph1.position = new BABYLON.Vector3(0,0.1,21);
                     // graph2.position = new BABYLON.Vector3(0,0.1,-50);
                     // graph3.position = new BABYLON.Vector3(0,0.1,50);
@@ -180,7 +180,7 @@
                         height: 0.01,
                         diameterTop: 2,
                         diameterBottom: 2,
-                        tessellation: 60 //(smoothness)
+                        tessellation: 32 //(smoothness)
                         }, scene);
                     cylinder.position.y = 1; // lift it above the ground
                     const cylinderMaterial = new BABYLON.StandardMaterial("cylinderMat", scene);
@@ -190,16 +190,16 @@
                     
                     //point to evaluate curve
                     const x_point = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
-                        height: 100,
+                        height: 60,
                         diameterTop: 1,
                         diameterBottom: 1,
-                        tessellation: 10 //(smoothness)
+                        tessellation: 4 //(smoothness)
                         }, scene);
                     const pointMaterial = new BABYLON.StandardMaterial("pointMat", scene);
                     pointMaterial.diffuseColor = new BABYLON.Color3(0.5,1,0);
                     pointMaterial.alpha = 0.5;
                     x_point.material = pointMaterial;
-                    x_point.position = new BABYLON.Vector3(0,50,0)
+                    x_point.position = new BABYLON.Vector3(0,30,0)
 
                     // //planes (epsilon)
                     // const plane1 = BABYLON.MeshBuilder.CreateGround("plane1", {
@@ -247,5 +247,4 @@
             });
         </script>
     </body>
-
 </html>
