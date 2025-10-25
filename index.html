@@ -148,23 +148,23 @@
                     const f2 = (x, z) => Math.exp(-0.1 * (x * x + z * z)) * 3; // 1 bump
                     const f3 = (x, z) => Math.sin(Math.sqrt(x * x + z * z)*2) * 1/2 + 0.5; // A ripple pattern
                     const f4 = (x, z) => (x+z)*(x+z)/100+Math.sin(x); //Wave
-                    const f5 = (x, z) => (x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001)); // Discontinuitous
+                    //const f5 = (x, z) => (x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001)); // Discontinuitous
                     const graph1 = createGraphMesh(scene, 10, 0.1, f1);
                     const graph2 = createGraphMesh(scene, 10, 0.1, f2);
                     const graph3 = createGraphMesh(scene, 10, 0.1, f3);
                     const graph4 = createGraphMesh(scene, 10, 0.1, f4);
-                    const graph5 = createGraphMesh(scene, 10, 0.01, f5);
-                    const graph6 = createGraphMesh(scene, 100, 0.1, f5);
+                    // const graph5 = createGraphMesh(scene, 10, 0.01, f5);
+                    // const graph6 = createGraphMesh(scene, 100, 0.1, f5);
                     graph1.position = new BABYLON.Vector3(0,0.1,21);
                     graph2.position = new BABYLON.Vector3(0,0.1,-50);
                     graph3.position = new BABYLON.Vector3(0,0.1,50);
                     graph4.position = new BABYLON.Vector3(0,0.5,-21);
-                    graph5.position = new BABYLON.Vector3(0,0.1,0);
-                    graph6.position = new BABYLON.Vector3(0,-0.001,0);
+                    // graph5.position = new BABYLON.Vector3(0,0.1,0);
+                    // graph6.position = new BABYLON.Vector3(0,-0.001,0);
 
                     //vr set up
                     const xr = await scene.createDefaultXRExperienceAsync({
-                            floorMeshes: [ground, graph1, graph2, graph3, graph4, graph5, graph6], // Use your custom ground for teleportation
+                            floorMeshes: [ground, graph1, graph2, graph3, graph4], // Use your custom ground for teleportation
                             disableTeleportation: false,
                         })
                 
