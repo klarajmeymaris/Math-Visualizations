@@ -70,6 +70,8 @@
                     const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                     groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.5, 0.02);
                     ground.material = groundMaterial;
+                    ground.checkCollisions = true;
+
                                         
                     //graphs
                     function createGraphMesh(scene, size, step, heightFunction) {
@@ -141,6 +143,8 @@
                         graphMaterial.backFaceCulling = false;
                         graphMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full brightness
                         graphMesh.material = graphMaterial;
+                        graphMesh.checkCollisions = true;
+                        graphMesh.metadata = { teleportable: true };
 
                         return graphMesh;
                     };
@@ -171,9 +175,29 @@
                     featureManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, 'latest', {
                         xrInput: xrHelper.input,
                         movementSpeed: 0.05 // adjust speed as needed
-                        });
+                    });
+                    
 
-                
+                    xrHelper.input.onControllerAddedObservable.add((controller) => {
+                    controller.onMotionControllerInitObservable.add((motionController) => {
+                        const teleportButton = motionController.getComponent("xr-standard-trigger");
+
+                        if (teleportButton) {
+                            teleportButton.onButtonStateChangedObservable.add(() => {
+                                if (teleportButton.changes.pressed) {
+                                    const forward = controller.pointer.forward;
+                                    const origin = controller.pointer.position;
+                                    const ray = new BABYLON.Ray(origin, forward, 10);
+
+                                    const hit = scene.pickWithRay(ray, (mesh) => mesh === ground || mesh.metadata?.teleportable);
+                                    if (hit && hit.pickedPoint) {
+                                        xrHelper.baseExperience.camera.position.copyFrom(hit.pickedPoint);
+                                        }
+                                    }
+                                });
+                            }
+                        }); });
+                    
                     return scene;
                 }
 
