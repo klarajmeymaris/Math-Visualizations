@@ -37,11 +37,11 @@
                     //scene
                     const scene = new BABYLON.Scene(engine);
                     scene.clearColor = new BABYLON.Color3(0.4, 0.7, 0.9);
-                    scene.collisionsEnabled = true;
 
                     //camera
-                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 1, -5), scene);
+                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 1, 100), scene);
                     camera.attachControl(canvas, true);
+                    camera.target = new BABYLON.Vector3.Zero();
                     //keyboard movement
                     camera.keysUp.push(87);
                     camera.keysDown.push(83);
@@ -65,13 +65,12 @@
                     hemiLight.intensity = 1.0;
 
                     //ground
-                    const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 100, height: 100 }, scene);
-                    ground.position.y = -0.1;
+                    const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 250, height: 250 }, scene);
+                    ground.position.y = -10;
 
                     const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                     groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.5, 0.02);
                     ground.material = groundMaterial;
-                    ground.checkCollisions = true;
 
                                         
                     //graphs
@@ -143,65 +142,85 @@
                         graphMaterial.vertexColorEnabled = true;
                         graphMaterial.backFaceCulling = false;
                         graphMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full brightness
+                        // graphMaterial.wireframe = true;
                         graphMesh.material = graphMaterial;
-                        graphMesh.checkCollisions = true;
-                        graphMesh.metadata = { teleportable: true };
 
                         return graphMesh;
                     };
-                    const f1 = (x, z) => 0.5*Math.sin(x) * Math.cos(z) + 0.5; //lots of bumps
-                    const f2 = (x, z) => Math.exp(-0.1 * (x * x + z * z)) * 3; // 1 bump
-                    const f3 = (x, z) => Math.sin(Math.sqrt(x * x + z * z)*2) * 1/2 + 0.5; // A ripple pattern
-                    const f4 = (x, z) => (x+z)*(x+z)/100+Math.sin(x)+0.2; //Wave
-                    //const f5 = (x, z) => (x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001)); // Discontinuitous
-                    const graph1 = createGraphMesh(scene, 10, 0.1, f1);
-                    const graph2 = createGraphMesh(scene, 10, 0.1, f2);
-                    const graph3 = createGraphMesh(scene, 10, 0.1, f3);
-                    const graph4 = createGraphMesh(scene, 10, 0.1, f4);
-                    // const graph5 = createGraphMesh(scene, 10, 0.01, f5);
-                    // const graph6 = createGraphMesh(scene, 100, 0.1, f5);
-                    graph1.position = new BABYLON.Vector3(0,0.1,21);
-                    graph2.position = new BABYLON.Vector3(0,0.1,-50);
-                    graph3.position = new BABYLON.Vector3(0,0.1,50);
-                    graph4.position = new BABYLON.Vector3(0,0.5,-21);
-                    // graph5.position = new BABYLON.Vector3(0,0.1,0);
-                    // graph6.position = new BABYLON.Vector3(0,-0.001,0);
+                    // const f1 = (x, z) => 0.5*Math.sin(x) * Math.cos(z) + 0.5; //lots of bumps
+                    // const f2 = (x, z) => Math.exp(-0.1 * (x * x + z * z)) * 3; // 1 bump
+                    // const f3 = (x, z) => Math.sin(Math.sqrt(x * x + z * z)*2) * 1/2 + 0.5; // A ripple pattern
+                    // const f4 = (x, z) => (x+z)*(x+z)/100+Math.sin(x)+0.2; //Wave
+                    const f5 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001))
+                        + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z)); // Discontinuitous
+                    // const graph1 = createGraphMesh(scene, 10, 0.1, f1);
+                    // const graph2 = createGraphMesh(scene, 10, 0.1, f2);
+                    // const graph3 = createGraphMesh(scene, 10, 0.1, f3);
+                    // const graph4 = createGraphMesh(scene, 10, 0.1, f4);
+                    const graph5 = createGraphMesh(scene, 3, 0.01, f5);
+                    const graph6 = createGraphMesh(scene, 100, 0.2, f5);
+                    // graph1.position = new BABYLON.Vector3(0,0.1,21);
+                    // graph2.position = new BABYLON.Vector3(0,0.1,-50);
+                    // graph3.position = new BABYLON.Vector3(0,0.1,50);
+                    // graph4.position = new BABYLON.Vector3(0,0.5,-21);
+                    graph5.position = new BABYLON.Vector3(0,-1,0);
+                    graph5.scaling.z +=0.1;
+                    graph6.position = new BABYLON.Vector3(0,-1.01,0);
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
-                            floorMeshes: [ground, graph1, graph2, graph3, graph4], // Use your custom ground for teleportation
+                            floorMeshes: [ground,graph5,graph6], // Use your custom ground for teleportation
                             disableTeleportation: false,
                         })
-                    // const featureManager = xrHelper.baseExperience.featuresManager;
-                    // featureManager.enableFeature(BABYLON.WebXRFeatureName.MOVEMENT, 'latest', {
-                    //     xrInput: xrHelper.input,
-                    //     movementSpeed: 0.05 // adjust speed as needed
-                    // });
+                    xrCamera = xrHelper.baseExperience.camera;
+                    xrCamera.position = new BABYLON.Vector3(0, 2, 100);
                     
-                    // xrHelper.input.onControllerAddedObservable.add((controller) => {
-                    // controller.onMotionControllerInitObservable.add((motionController) => {
-                    //     const teleportButton = motionController.getComponent("xr-standard-trigger");
-
-                    //     if (teleportButton) {
-                    //         teleportButton.onButtonStateChangedObservable.add(() => {
-                    //             if (teleportButton.changes.pressed) {
-                    //                 const forward = controller.pointer.forward;
-                    //                 const origin = controller.pointer.position;
-                    //                 const ray = new BABYLON.Ray(origin, forward, 10);
-
-                    //                 const hit = scene.pickWithRay(ray, (mesh) => mesh === ground || mesh.metadata?.teleportable);
-                    //                 if (hit && hit.pickedPoint) {
-                    //                     const offset = new BABYLON.Vector3(0, 1.6, 0); //typical VR eye height
-                    //                     xrHelper.baseExperience.camera.position.copyFrom(hit.pickedPoint.add(offset));
-                    //                     }
-                    //                 }
-                    //             });
-                    //         }
-                    //     }); });
+                    // cylinder delta
+                    const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
+                        height: 0.01,
+                        diameterTop: 2,
+                        diameterBottom: 2,
+                        tessellation: 60 //(smoothness)
+                        }, scene);
+                    cylinder.position.y = 1; // lift it above the ground
+                    const cylinderMaterial = new BABYLON.StandardMaterial("cylinderMat", scene);
+                    cylinderMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+                    cylinderMaterial.alpha = 0.2;
+                    cylinder.material = cylinderMaterial;
                     
-                    // xrHelper.baseExperience.camera.checkCollisions = true;
-                    // xrHelper.baseExperience.camera.applyGravity = true;
-                    // xrHelper.baseExperience.camera.ellipsoid = new BABYLON.Vector3(0.5, 1, 0.5);
+                    //point to evaluate curve
+                    const x_point = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
+                        height: 100,
+                        diameterTop: 1,
+                        diameterBottom: 1,
+                        tessellation: 10 //(smoothness)
+                        }, scene);
+                    const pointMaterial = new BABYLON.StandardMaterial("pointMat", scene);
+                    pointMaterial.diffuseColor = new BABYLON.Color3(0.5,1,0);
+                    pointMaterial.alpha = 0.5;
+                    x_point.material = pointMaterial;
+                    x_point.position = new BABYLON.Vector3(0,50,0)
+
+                    // //planes (epsilon)
+                    // const plane1 = BABYLON.MeshBuilder.CreateGround("plane1", {
+                    //     width: 200,
+                    //     height: 200,
+                    //     subdivisions: 10
+                    // }, scene);
+                    // const plane2 = BABYLON.MeshBuilder.CreateGround("plane1", {
+                    //     width: 200,
+                    //     height: 200,
+                    //     subdivisions: 10
+                    // }, scene);
+                    // const planeMaterial = new BABYLON.StandardMaterial('wireFrame',scene);
+                    // planeMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+                    // planeMaterial.wireframe = true;
+                    // plane1.material = planeMaterial;
+                    // plane2.material = planeMaterial;
+
+                    // plane1.position.y = 3; 
+                    // plane2.position.y = 20; 
+
 
                     return scene;
                 }
@@ -211,6 +230,13 @@
 
                 // run the render loop
                 engine.runRenderLoop(function () {
+                    const camera = scene.getCameraByName('camera')
+                    const v_position = camera.position.subtract(BABYLON.Vector3.Zero());
+                    const cylinder = scene.getMeshByName('cylinder');
+                    const distance = Math.sqrt(v_position.x*v_position.x+v_position.z*v_position.z)
+                    cylinder.scaling.z = distance-1;
+                    cylinder.scaling.x = distance-1;
+                    cylinder.position.y = v_position.y-1.6;
                     scene.render();
                 });
 
