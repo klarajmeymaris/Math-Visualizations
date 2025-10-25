@@ -37,6 +37,7 @@
                     //scene
                     const scene = new BABYLON.Scene(engine);
                     scene.clearColor = new BABYLON.Color3(0.4, 0.7, 0.9);
+                    scene.collisionsEnabled = true;
 
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 1, -5), scene);
@@ -177,7 +178,6 @@
                         movementSpeed: 0.05 // adjust speed as needed
                     });
                     
-
                     xrHelper.input.onControllerAddedObservable.add((controller) => {
                     controller.onMotionControllerInitObservable.add((motionController) => {
                         const teleportButton = motionController.getComponent("xr-standard-trigger");
@@ -191,13 +191,18 @@
 
                                     const hit = scene.pickWithRay(ray, (mesh) => mesh === ground || mesh.metadata?.teleportable);
                                     if (hit && hit.pickedPoint) {
-                                        xrHelper.baseExperience.camera.position.copyFrom(hit.pickedPoint);
+                                        const offset = new BABYLON.Vector3(0, 1.6, 0); //typical VR eye height
+                                        xrHelper.baseExperience.camera.position.copyFrom(hit.pickedPoint.add(offset));
                                         }
                                     }
                                 });
                             }
                         }); });
                     
+                        xrHelper.baseExperience.camera.checkCollisions = true;
+                    xrHelper.baseExperience.camera.applyGravity = true;
+                    xrHelper.baseExperience.camera.ellipsoid = new BABYLON.Vector3(0.5, 1, 0.5);
+
                     return scene;
                 }
 
