@@ -180,7 +180,7 @@
                         height: 0.01,
                         diameterTop: 2,
                         diameterBottom: 2,
-                        tessellation: 15 //(smoothness)
+                        tessellation: 32 //(smoothness)
                         }, scene);
                     cylinder.position.y = 1; // lift it above the ground
                     const cylinderMaterial = new BABYLON.StandardMaterial("cylinderMat", scene);
@@ -234,9 +234,9 @@
                     const v_position = xrCamera.position.subtract(BABYLON.Vector3.Zero());
                     const cylinder = scene.getMeshByName('cylinder');
                     const distance = Math.sqrt(v_position.x*v_position.x+v_position.z*v_position.z)
-                    cylinder.scaling.z = distance-0.2;
-                    cylinder.scaling.x = distance-0.2;
-                    cylinder.position.y = v_position.y-1;
+                    cylinder.scaling.z = distance+0.2;
+                    cylinder.scaling.x = distance+0.2;
+                    cylinder.position.y = v_position.y-0.5;
                     scene.render();
                 });
 
@@ -247,5 +247,4 @@
             });
         </script>
     </body>
-
 </html>
