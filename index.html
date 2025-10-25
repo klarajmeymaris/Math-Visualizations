@@ -234,8 +234,8 @@
                     const v_position = xrCamera.position.subtract(BABYLON.Vector3.Zero());
                     const cylinder = scene.getMeshByName('cylinder');
                     const distance = Math.sqrt(v_position.x*v_position.x+v_position.z*v_position.z)
-                    cylinder.scaling.z = distance-1;
-                    cylinder.scaling.x = distance-1;
+                    cylinder.scaling.z = distance-0.2;
+                    cylinder.scaling.x = distance-0.2;
                     cylinder.position.y = v_position.y-1;
                     scene.render();
                 });
@@ -247,4 +247,5 @@
             });
         </script>
     </body>
+
 </html>
