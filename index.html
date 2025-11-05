@@ -5,6 +5,7 @@
         <title>Epsilon Delta Visualization</title>
         <!--This sets up connecting to Babylon-->
         <script src="https://cdn.babylonjs.com/babylon.max.js"></script>
+        <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
         <style>
 
             html,
@@ -33,47 +34,69 @@
                 // load the 3D engine
                 const engine = new BABYLON.Engine(canvas, true);
                 // createScene function that creates and return the scene
+
+                let positionLabel;
+                //functions
+                let func_num = 0;
+                const func0 = (x, z) => Math.pow(Math.cos((x*x+z*z)/100),2)*20*Math.exp((-x*x-z*z)/500)
+                                + 5*Math.exp((-x*x-z*z)/500);
+                const func1 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001))
+                        + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
+                const funcs = [func0, func1];
+                let func = func0;
+
                 const createScene = async function () {
                     //scene
                     const scene = new BABYLON.Scene(engine);
-                    scene.clearColor = new BABYLON.Color3(0.4, 0.7, 0.9);
+                    scene.clearColor = new BABYLON.Color3(0.1, 0.08, 0.3);
+
+                    const dome = BABYLON.MeshBuilder.CreateSphere("starDome", { diameter: 1000, sideOrientation: BABYLON.Mesh.BACKSIDE }, scene);
+                    const domeMat = new BABYLON.StandardMaterial("domeMat", scene);
+                    domeMat.diffuseTexture = new BABYLON.Texture("https://images-assets.nasa.gov/image/PIA15415/PIA15415~medium.jpg", scene);
+                    domeMat.backFaceCulling = false;
+                    domeMat.specularColor = new BABYLON.Color3(0,0,0);
+                    dome.material = domeMat;
+                    dome.rotation.x = Math.PI;
+
 
                     //camera
-                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 1, 100), scene);
+                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
                     camera.attachControl(canvas, true);
                     camera.target = new BABYLON.Vector3.Zero();
-                    //keyboard movement
-                    camera.keysUp.push(87);
-                    camera.keysDown.push(83);
-                    camera.keysLeft.push(65);
-                    camera.keysRight.push(68);
-                    scene.onKeyboardObservable.add((kbInfo) => {
-                        switch (kbInfo.type) {
-                            case BABYLON.KeyboardEventTypes.KEYDOWN:
-                                if (kbInfo.event.key === "e") {
-                                    camera.cameraDirection.y += 0.2;
-                                }
-                                if (kbInfo.event.key === "q") {
-                                    camera.cameraDirection.y -= 0.2;
-                                }
-                                break;
-                        }
-                    });
 
                     //light
                     const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
                     hemiLight.intensity = 1.0;
 
                     //ground
-                    const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 250, height: 250 }, scene);
-                    ground.position.y = -10;
-
+                    const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 300, height: 300 }, scene);
+                    ground.position.y = -20;
                     const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-                    groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.5, 0.02);
+                    groundMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+                    groundMaterial.wireframe = true;
                     ground.material = groundMaterial;
 
-                                        
-                    //graphs
+                    //starting platform
+                    const platform = BABYLON.CreateGround('platform',{width: 5, height:5},scene);
+                    platform.position = new BABYLON.Vector3(0,5,83);
+                    const platMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+                    platMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+                    platMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+                    platMaterial.alpha = 0.5;
+                    platform.material = platMaterial;
+
+                    //moveable point
+                    const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
+                        diameter: 0.5,        // Full diameter of the sphere
+                        segments: 32        // Number of horizontal segments (higher = smoother)
+                        }, scene);
+                    sphere.position = new BABYLON.Vector3(0,2,65);
+                    const sphereTexture = new BABYLON.StandardMaterial('sphereTexture',scene);
+                    sphereTexture.diffuseColor = new BABYLON.Color3(0,0,0);
+                    sphereTexture.specularColor = new BABYLON.Color3(0, 0, 0);
+                    sphere.material = sphereTexture;
+                 
+                    //graph
                     function createGraphMesh(scene, size, step, heightFunction) {
                         const graphPositions = [];
                         const graphIndices = [];
@@ -147,97 +170,216 @@
 
                         return graphMesh;
                     };
-                    // const f1 = (x, z) => 0.5*Math.sin(x) * Math.cos(z) + 0.5; //lots of bumps
-                    // const f2 = (x, z) => Math.exp(-0.1 * (x * x + z * z)) * 3; // 1 bump
-                    // const f3 = (x, z) => Math.sin(Math.sqrt(x * x + z * z)*2) * 1/2 + 0.5; // A ripple pattern
-                    // const f4 = (x, z) => (x+z)*(x+z)/100+Math.sin(x)+0.2; //Wave
-                    const f5 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001))
-                        + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z)); // Discontinuitous
-                    // const graph1 = createGraphMesh(scene, 10, 0.1, f1);
-                    // const graph2 = createGraphMesh(scene, 10, 0.1, f2);
-                    // const graph3 = createGraphMesh(scene, 10, 0.1, f3);
-                    // const graph4 = createGraphMesh(scene, 10, 0.1, f4);
-                    const graph5 = createGraphMesh(scene, 3, 0.01, f5);
-                    const graph6 = createGraphMesh(scene, 100, 1, f5);
-                    // graph1.position = new BABYLON.Vector3(0,0.1,21);
-                    // graph2.position = new BABYLON.Vector3(0,0.1,-50);
-                    // graph3.position = new BABYLON.Vector3(0,0.1,50);
-                    // graph4.position = new BABYLON.Vector3(0,0.5,-21);
-                    graph5.position = new BABYLON.Vector3(0,-1,0);
-                    graph5.scaling.z +=0.1;
-                    graph6.position = new BABYLON.Vector3(0,-1.01,0);
+                    let graph = createGraphMesh(scene, 70, 0.25, func);
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
-                            floorMeshes: [ground,graph5,graph6], // Use your custom ground for teleportation
+                            floorMeshes: [ground,platform,graph], // Use your custom ground for teleportation
                             disableTeleportation: false,
                         })
                     xrCamera = xrHelper.baseExperience.camera;
-                    xrCamera.position = new BABYLON.Vector3(0, 2, 100);
+                    xrCamera.position = new BABYLON.Vector3(0,7,83);
                     
-                    // cylinder delta
-                    const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
-                        height: 0.01,
-                        diameterTop: 2,
-                        diameterBottom: 2,
-                        tessellation: 32 //(smoothness)
-                        }, scene);
-                    cylinder.position.y = 1; // lift it above the ground
-                    const cylinderMaterial = new BABYLON.StandardMaterial("cylinderMat", scene);
-                    cylinderMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
-                    cylinderMaterial.alpha = 0.2;
-                    cylinder.material = cylinderMaterial;
+                    // delta curve
+                    function createCurve(scene, radius, step, heightFunction){
+                        surface_points = [];
+                        for (theta = 0; theta <= 2*Math.PI+step; theta += step){
+                            const x = radius*Math.cos(theta);
+                            const z = radius*Math.sin(theta);
+                            const y = heightFunction(x,z); 
+                            surface_points.push(new BABYLON.Vector3(x,y,z))
+                        }
+                        
+                        const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
+                        return curve
+                    }
+                    const surfaceCurve = createCurve(scene, 10,0.01,func);
+                    surfaceCurve.position.y += 0.1
                     
                     //point to evaluate curve
-                    const x_point = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
-                        height: 60,
-                        diameterTop: 1,
-                        diameterBottom: 1,
-                        tessellation: 3 //(smoothness)
-                        }, scene);
-                    const pointMaterial = new BABYLON.StandardMaterial("pointMat", scene);
-                    pointMaterial.diffuseColor = new BABYLON.Color3(0.5,1,0);
-                    pointMaterial.alpha = 0.5;
-                    x_point.material = pointMaterial;
-                    x_point.position = new BABYLON.Vector3(0,30,0)
+                    const points = [
+                        new BABYLON.Vector3(0, 0, 0),
+                        new BABYLON.Vector3(0, 50, 0),
+                        ];
+                    const line = BABYLON.MeshBuilder.CreateLines("line", { points: points }, scene);
 
-                    // //planes (epsilon)
-                    // const plane1 = BABYLON.MeshBuilder.CreateGround("plane1", {
-                    //     width: 200,
-                    //     height: 200,
-                    //     subdivisions: 10
-                    // }, scene);
-                    // const plane2 = BABYLON.MeshBuilder.CreateGround("plane1", {
-                    //     width: 200,
-                    //     height: 200,
-                    //     subdivisions: 10
-                    // }, scene);
-                    // const planeMaterial = new BABYLON.StandardMaterial('wireFrame',scene);
-                    // planeMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
-                    // planeMaterial.wireframe = true;
-                    // plane1.material = planeMaterial;
-                    // plane2.material = planeMaterial;
+                    //keyboard input
+                    camera.keysUp.push(87);
+                    camera.keysDown.push(83);
+                    camera.keysLeft.push(65);
+                    camera.keysRight.push(68);
+                    scene.onKeyboardObservable.add((kbInfo) => {
+                        switch (kbInfo.type) {
+                            case BABYLON.KeyboardEventTypes.KEYDOWN:
+                                if (kbInfo.event.key === "e") {
+                                    camera.cameraDirection.y += 0.2;
+                                }
+                                if (kbInfo.event.key === "q") {
+                                    camera.cameraDirection.y -= 0.2;
+                                }
+                                if (kbInfo.event.key === "n"){
+                                    func_num = (func_num + 1) % funcs.length;
+                                    func = funcs[func_num];
+                                    sphere.position =  new BABYLON.Vector3(0,2,65);
+                                    camera.position = new BABYLON.Vector3(0,7,83);
+                                    camera.target = new BABYLON.Vector3.Zero();
+                                    graph.dispose();
+                                    graph = createGraphMesh(scene, 70, 0.25, func);
+                                    
+                                };
+                                break;
+                        }
+                    });
+                    camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
 
-                    // plane1.position.y = 3; 
-                    // plane2.position.y = 20; 
+                    // Drag logic for keyboard
+                    let isDragging = false;
+                    let dragPlane = BABYLON.MeshBuilder.CreatePlane("dragPlane", { size: 100 }, scene);
+                    dragPlane.isVisible = false;
+                    scene.onPointerDown = function (evt, pickResult) {
+                        if (evt.button === 2 && pickResult.hit && pickResult.pickedMesh === sphere) {
+                            isDragging = true;
+                            dragPlane.position = sphere.position.clone();
+                            dragPlane.lookAt(camera.position);
+                        }};
+                    scene.onPointerUp = function () {
+                        isDragging = false;
+                    };
+                    scene.onPointerMove = function (evt) {
+                        if (!isDragging) return;
 
+                        const pick = scene.pick(scene.pointerX, scene.pointerY, mesh => mesh === dragPlane);
+                        if (pick.hit) {
+                            sphere.position.x = pick.pickedPoint.x;
+                            sphere.position.z = pick.pickedPoint.z;
+                        }
+                    };
+                    
+                    // bottons for VR (drag logic and teleport button)
+                    xrHelper.input.onControllerAddedObservable.add(controller => {
+                        controller.onMotionControllerInitObservable.add(motionController => {
+                            const triggerComponent = motionController.getComponent("trigger");
+
+                            if (triggerComponent) {
+                                triggerComponent.onButtonStateChangedObservable.add(() => {
+                                    if (triggerComponent.changes.pressed) {
+                                        if (triggerComponent.pressed) {
+                                            // Check if controller is near the sphere
+                                            const distance = BABYLON.Vector3.Distance(
+                                            controller.grip?.position || controller.pointer.position,
+                                            sphere.position
+                                            );
+
+                                            if (distance < 0.3) {
+                                            sphere.setParent(controller.grip || controller.pointer); // Attach to controller
+                                            }
+                                        } else {
+                                            sphere.setParent(null); // Release
+                                        }
+                                    }
+                                });
+                            }
+
+                            const aButton = motionController.getComponent("a-button");
+
+                            if (aButton) {
+                                aButton.onButtonStateChangedObservable.add(() => {
+                                    if (aButton.changes.pressed && aButton.pressed) {
+                                        const userPos = xrHelper.baseExperience.camera.position;
+                                        sphere.position = userPos; 
+                                    }
+                                });
+
+                            };
+                            if (bButton) {
+                                aButton.onButtonStateChangedObservable.add(() => {
+                                    if (bButton.changes.pressed && bButton.pressed) {
+                                        func_num = (func_num + 1) % funcs.length;
+                                        func = funcs[func_num];
+                                        sphere.position =  new BABYLON.Vector3(0,2,65);
+                                        xrCamera.position = new BABYLON.Vector3(0,7,83);
+                                        graph.dispose();
+                                        graph = createGraphMesh(scene, 70, 0.25, func);
+                                    }
+                                });
+
+                            };
+                        });
+                    });
+
+                    //text for min and max values
+                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                    positionLabel = new BABYLON.GUI.TextBlock();
+                    positionLabel.text = "";
+                    positionLabel.color = "white";
+                    positionLabel.fontSize = 24;
+                    positionLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                    positionLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                    positionLabel.paddingRight = 20;
+                    positionLabel.paddingTop = 20;
+                    advancedTexture.addControl(positionLabel);
+
+                    //text for info
+                    infoLabel = new BABYLON.GUI.TextBlock();
+                    infoLabel.text = "           VR Controls\n- Joystick: Teleportantion\n- "+
+                                        "Trigger: Moving sphere\n- A: Teleport sphere\n- B: Switch graphs";
+                    infoLabel.color = "white";
+                    infoLabel.fontSize = 15;
+                    infoLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_Left;
+                    infoLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                    infoLabel.paddingLeft = 20;
+                    infoLabel.paddingTop = 20;
+                    advancedTexture.addControl(infoLabel);
 
                     return scene;
                 }
 
                 // call the createScene function
-                var scene = await createScene();
+                const scene = await createScene();
 
                 // run the render loop
                 engine.runRenderLoop(function () {
-                    const camera = scene.getCameraByName('camera')
-                    const v_position = xrCamera.position.subtract(BABYLON.Vector3.Zero());
-                    const cylinder = scene.getMeshByName('cylinder');
-                    const distance = Math.sqrt(v_position.x*v_position.x+v_position.z*v_position.z)
-                    cylinder.scaling.z = distance+0.2;
-                    cylinder.scaling.x = distance+0.2;
-                    cylinder.position.y = v_position.y-0.5;
+                    const sphere = scene.getMeshByName('sphere');
+                    sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
+                    const surfaceCurve = scene.getMeshByName('deltaCurve');
+                    
+                    // Rebuild the curve with the new radius
+                    let min = 10000;
+                    let max = -10000;
+                    const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
+                    function createCurve(scene, radius, step, heightFunction){
+                        surface_points = [];
+                        for (theta = 0; theta <= 2*Math.PI+step; theta += step){
+                            const x = radius*Math.cos(theta);
+                            const z = radius*Math.sin(theta);
+                            const y = heightFunction(x,z); 
+                            surface_points.push(new BABYLON.Vector3(x,y,z))
+                            for (rad=0.01; rad< radius; rad +=0.1){
+                                const x = rad*Math.cos(theta);
+                                const z = rad*Math.sin(theta);
+                                const y = heightFunction(x,z);
+                                if (y < min-0.01){
+                                    min = y;
+                                };
+                                if (y > max+0.01){
+                                    max = y;
+                                };
+                            };
+                            
+                        };
+                        
+                        const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
+                        return curve;
+                    }
+                    surfaceCurve.position.y += 0.1;
+                    const newCurve = createCurve(scene, radius, 0.01, func);
+                    newCurve.name = 'deltaCurve'; // Replace old curve
+                    newCurve.position.y = 0.1;
+                    surfaceCurve.dispose();
+                    //updates text
+                    positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
                     scene.render();
+
                 });
 
                 // the canvas/window resize event handler
