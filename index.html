@@ -349,6 +349,7 @@
                     let max = -10000;
                     reload_curve +=0.05;
                     if (reload_curve >1){
+                        reload_curve = 0;
                         const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
                         function createCurve(scene, radius, step, heightFunction){
                             surface_points = [];
