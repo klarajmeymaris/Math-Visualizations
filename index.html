@@ -336,7 +336,8 @@
 
                 // call the createScene function
                 const scene = await createScene();
-
+                
+                let reload_curve = 0;
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
@@ -346,38 +347,42 @@
                     // Rebuild the curve with the new radius
                     let min = 10000;
                     let max = -10000;
-                    const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
-                    function createCurve(scene, radius, step, heightFunction){
-                        surface_points = [];
-                        for (theta = 0; theta <= 2*Math.PI+step; theta += step){
-                            const x = radius*Math.cos(theta);
-                            const z = radius*Math.sin(theta);
-                            const y = heightFunction(x,z); 
-                            surface_points.push(new BABYLON.Vector3(x,y,z))
-                            for (rad=0.01; rad< radius; rad +=0.1){
-                                const x = rad*Math.cos(theta);
-                                const z = rad*Math.sin(theta);
-                                const y = heightFunction(x,z);
-                                if (y < min-0.01){
-                                    min = y;
+                    reload_curve +=0.05;
+                    if (reload_curve >1){
+                        const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
+                        function createCurve(scene, radius, step, heightFunction){
+                            surface_points = [];
+                            for (theta = 0; theta <= 2*Math.PI+step; theta += step){
+                                const x = radius*Math.cos(theta);
+                                const z = radius*Math.sin(theta);
+                                const y = heightFunction(x,z); 
+                                surface_points.push(new BABYLON.Vector3(x,y,z))
+                                for (rad=0.01; rad< radius; rad +=0.5){
+                                    const x = rad*Math.cos(theta);
+                                    const z = rad*Math.sin(theta);
+                                    const y = heightFunction(x,z);
+                                    if (y < min-0.01){
+                                        min = y;
+                                    };
+                                    if (y > max+0.01){
+                                        max = y;
+                                    };
                                 };
-                                if (y > max+0.01){
-                                    max = y;
-                                };
+                                
                             };
                             
-                        };
-                        
-                        const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
-                        return curve;
+                            const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
+                            return curve;
+                        }
+                        surfaceCurve.position.y += 0.1;
+                        const newCurve = createCurve(scene, radius, 0.01, func);
+                        newCurve.name = 'deltaCurve'; // Replace old curve
+                        newCurve.position.y = 0.1;
+                        surfaceCurve.dispose();
+                        //updates text
+                        positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
                     }
-                    surfaceCurve.position.y += 0.1;
-                    const newCurve = createCurve(scene, radius, 0.01, func);
-                    newCurve.name = 'deltaCurve'; // Replace old curve
-                    newCurve.position.y = 0.1;
-                    surfaceCurve.dispose();
-                    //updates text
-                    positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
+                    
                     scene.render();
 
                 });
