@@ -44,6 +44,7 @@
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
                 let func = func0;
+                let reload_curve = false;
 
                 const createScene = async function () {
                     //scene
@@ -193,7 +194,7 @@
                         const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
                         return curve
                     }
-                    const surfaceCurve = createCurve(scene, 10,0.01,func);
+                    const surfaceCurve = createCurve(scene, 10,0.1,func);
                     surfaceCurve.position.y += 0.1
                     
                     //point to evaluate curve
@@ -308,7 +309,10 @@
                     });
 
                     //text for min and max values
-                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                    const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
+                    textPlane.position = new BABYLON.Vector3(0, 2, 2);
+
+                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
                     positionLabel = new BABYLON.GUI.TextBlock();
                     positionLabel.text = "";
                     positionLabel.color = "white";
@@ -331,13 +335,20 @@
                     infoLabel.paddingTop = 20;
                     advancedTexture.addControl(infoLabel);
 
+                    // text follow camera
+                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                        if (state === BABYLON.WebXRState.IN_XR) {
+                            textPlane.parent = xrHelper.baseExperience.camera;
+                        }
+                    });
+
                     return scene;
                 }
 
                 // call the createScene function
                 const scene = await createScene();
                 
-                let reload_curve = 0;
+                let old_position = BABYLON.Vector3.Zero();
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
@@ -347,9 +358,13 @@
                     // Rebuild the curve with the new radius
                     let min = 10000;
                     let max = -10000;
-                    reload_curve +=0.05;
-                    if (reload_curve >1){
+                    if (!old_position.equals(sphere.position)){
+                        reload_curve = true;
+                        old_position = sphere.position.clone();
+                    }
+                    if (reload_curve){
                         reload_curve = 0;
+                        surfaceCurve.dispose();
                         const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
                         function createCurve(scene, radius, step, heightFunction){
                             surface_points = [];
@@ -376,10 +391,9 @@
                             return curve;
                         }
                         surfaceCurve.position.y += 0.1;
-                        const newCurve = createCurve(scene, radius, 0.01, func);
+                        const newCurve = createCurve(scene, radius, 0.05, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
-                        surfaceCurve.dispose();
                         //updates text
                         positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
                     }
