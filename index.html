@@ -95,6 +95,12 @@
                     sphereTexture.diffuseColor = new BABYLON.Color3(0,0,0);
                     sphereTexture.specularColor = new BABYLON.Color3(0, 0, 0);
                     sphere.material = sphereTexture;
+
+                    sphere.isPickable = true;
+                    sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
+                        sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 0 }, scene
+                    );
+
                  
                     //graph
                     function createGraphMesh(scene, size, step, heightFunction) {
