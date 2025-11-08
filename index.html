@@ -289,30 +289,31 @@
                                 });
                             }
 
-                            // const aButton = motionController.getComponent("a-button");
-                            // if (aButton) {
-                            //     aButton.onButtonStateChangedObservable.add(() => {
-                            //         if (aButton.changes.pressed && aButton.pressed) {
-                            //             const userPos = xrHelper.baseExperience.camera.position;
-                            //             sphere.position = userPos; 
-                            //         }
-                            //     });
+                            const aButton = motionController.getComponent("a-button");
+                            if (aButton) {
+                                aButton.onButtonStateChangedObservable.add(() => {
+                                    if (aButton.changes.pressed && aButton.pressed) {
+                                        const userPos = xrHelper.baseExperience.camera.position;
+                                        sphere.position = userPos; 
+                                    }
+                                });
 
-                            // };
-                            // const bButton = motionController.getComponent("b-button");
-                            // if (bButton) {
-                            //     bButton.onButtonStateChangedObservable.add(() => {
-                            //         if (bButton.changes.pressed && bButton.pressed) {
-                            //             func_num = (func_num + 1) % funcs.length;
-                            //             func = funcs[func_num];
-                            //             sphere.position =  new BABYLON.Vector3(0,2,65);
-                            //             xrCamera.position = new BABYLON.Vector3(0,7,83);
-                            //             graph.dispose();
-                            //             graph = createGraphMesh(scene, 70, 0.25, func);
-                            //         }
-                            //     });
+                            };
+                            
+                            const bButton = motionController.getComponent("b-button");
+                            if (bButton) {
+                                bButton.onButtonStateChangedObservable.add(() => {
+                                    if (bButton.changes.pressed && bButton.pressed) {
+                                        func_num = (func_num + 1) % funcs.length;
+                                        func = funcs[func_num];
+                                        sphere.position =  new BABYLON.Vector3(0,2,65);
+                                        xrCamera.position = new BABYLON.Vector3(0,7,83);
+                                        graph.dispose();
+                                        graph = createGraphMesh(scene, 70, 0.25, func);
+                                    }
+                                });
 
-                            // };
+                            };
                         });
                     });
 
