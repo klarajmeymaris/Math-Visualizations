@@ -175,7 +175,7 @@
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
-                            floorMeshes: [ground,platform,graph], // Use your custom ground for teleportation
+                            floorMeshes: [ground,platform], // Use your custom ground for teleportation
                             disableTeleportation: false,
                         })
                     xrCamera = xrHelper.baseExperience.camera;
@@ -205,56 +205,56 @@
                     const line = BABYLON.MeshBuilder.CreateLines("line", { points: points }, scene);
 
                     //keyboard input
-                    camera.keysUp.push(87);
-                    camera.keysDown.push(83);
-                    camera.keysLeft.push(65);
-                    camera.keysRight.push(68);
-                    scene.onKeyboardObservable.add((kbInfo) => {
-                        switch (kbInfo.type) {
-                            case BABYLON.KeyboardEventTypes.KEYDOWN:
-                                if (kbInfo.event.key === "e") {
-                                    camera.cameraDirection.y += 0.2;
-                                }
-                                if (kbInfo.event.key === "q") {
-                                    camera.cameraDirection.y -= 0.2;
-                                }
-                                if (kbInfo.event.key === "n"){
-                                    func_num = (func_num + 1) % funcs.length;
-                                    func = funcs[func_num];
-                                    sphere.position =  new BABYLON.Vector3(0,2,65);
-                                    camera.position = new BABYLON.Vector3(0,7,83);
-                                    camera.target = new BABYLON.Vector3.Zero();
-                                    graph.dispose();
-                                    graph = createGraphMesh(scene, 70, 0.25, func);
+                    //camera.keysUp.push(87);
+                    //camera.keysDown.push(83);
+                    //camera.keysLeft.push(65);
+                    //camera.keysRight.push(68);
+                    //scene.onKeyboardObservable.add((kbInfo) => {
+                    //    switch (kbInfo.type) {
+                    //        case BABYLON.KeyboardEventTypes.KEYDOWN:
+                    //            if (kbInfo.event.key === "e") {
+                    //                camera.cameraDirection.y += 0.2;
+                    //            }
+                    //             if (kbInfo.event.key === "q") {
+                    //                 camera.cameraDirection.y -= 0.2;
+                    //             }
+                    //             if (kbInfo.event.key === "n"){
+                    //                 func_num = (func_num + 1) % funcs.length;
+                    //                 func = funcs[func_num];
+                    //                 sphere.position =  new BABYLON.Vector3(0,2,65);
+                    //                 camera.position = new BABYLON.Vector3(0,7,83);
+                    //                 camera.target = new BABYLON.Vector3.Zero();
+                    //                 graph.dispose();
+                    //                 graph = createGraphMesh(scene, 70, 0.25, func);
                                     
-                                };
-                                break;
-                        }
-                    });
-                    camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
+                    //             };
+                    //             break;
+                    //     }
+                    // });
+                    //camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
 
-                    // Drag logic for keyboard
-                    let isDragging = false;
-                    let dragPlane = BABYLON.MeshBuilder.CreatePlane("dragPlane", { size: 100 }, scene);
-                    dragPlane.isVisible = false;
-                    scene.onPointerDown = function (evt, pickResult) {
-                        if (evt.button === 2 && pickResult.hit && pickResult.pickedMesh === sphere) {
-                            isDragging = true;
-                            dragPlane.position = sphere.position.clone();
-                            dragPlane.lookAt(camera.position);
-                        }};
-                    scene.onPointerUp = function () {
-                        isDragging = false;
-                    };
-                    scene.onPointerMove = function (evt) {
-                        if (!isDragging) return;
+                    // // Drag logic for keyboard
+                    // let isDragging = false;
+                    // let dragPlane = BABYLON.MeshBuilder.CreatePlane("dragPlane", { size: 100 }, scene);
+                    // dragPlane.isVisible = false;
+                    // scene.onPointerDown = function (evt, pickResult) {
+                    //     if (evt.button === 2 && pickResult.hit && pickResult.pickedMesh === sphere) {
+                    //         isDragging = true;
+                    //         dragPlane.position = sphere.position.clone();
+                    //         dragPlane.lookAt(camera.position);
+                    //     }};
+                    // scene.onPointerUp = function () {
+                    //     isDragging = false;
+                    // };
+                    // scene.onPointerMove = function (evt) {
+                    //     if (!isDragging) return;
 
-                        const pick = scene.pick(scene.pointerX, scene.pointerY, mesh => mesh === dragPlane);
-                        if (pick.hit) {
-                            sphere.position.x = pick.pickedPoint.x;
-                            sphere.position.z = pick.pickedPoint.z;
-                        }
-                    };
+                    //     const pick = scene.pick(scene.pointerX, scene.pointerY, mesh => mesh === dragPlane);
+                    //     if (pick.hit) {
+                    //         sphere.position.x = pick.pickedPoint.x;
+                    //         sphere.position.z = pick.pickedPoint.z;
+                    //     }
+                    // };
                     
                     // bottons for VR (drag logic and teleport button)
                     xrHelper.input.onControllerAddedObservable.add(controller => {
@@ -308,39 +308,39 @@
                         });
                     });
 
-                    //text for min and max values
-                    const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
-                    textPlane.position = new BABYLON.Vector3(0, 2, 2);
+                    // //text for min and max values
+                    // const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
+                    // textPlane.position = new BABYLON.Vector3(0, 2, 2);
 
-                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
-                    positionLabel = new BABYLON.GUI.TextBlock();
-                    positionLabel.text = "";
-                    positionLabel.color = "white";
-                    positionLabel.fontSize = 24;
-                    positionLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-                    positionLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-                    positionLabel.paddingRight = 20;
-                    positionLabel.paddingTop = 20;
-                    advancedTexture.addControl(positionLabel);
+                    // const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
+                    // positionLabel = new BABYLON.GUI.TextBlock();
+                    // positionLabel.text = "";
+                    // positionLabel.color = "white";
+                    // positionLabel.fontSize = 24;
+                    // positionLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                    // positionLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                    // positionLabel.paddingRight = 20;
+                    // positionLabel.paddingTop = 20;
+                    // advancedTexture.addControl(positionLabel);
 
-                    //text for info
-                    infoLabel = new BABYLON.GUI.TextBlock();
-                    infoLabel.text = "           VR Controls\n- Joystick: Teleportantion\n- "+
-                                        "Trigger: Moving sphere\n- A: Teleport sphere\n- B: Switch graphs";
-                    infoLabel.color = "white";
-                    infoLabel.fontSize = 15;
-                    infoLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_Left;
-                    infoLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-                    infoLabel.paddingLeft = 20;
-                    infoLabel.paddingTop = 20;
-                    advancedTexture.addControl(infoLabel);
+                    // //text for info
+                    // infoLabel = new BABYLON.GUI.TextBlock();
+                    // infoLabel.text = "           VR Controls\n- Joystick: Teleportantion\n- "+
+                    //                     "Trigger: Moving sphere\n- A: Teleport sphere\n- B: Switch graphs";
+                    // infoLabel.color = "white";
+                    // infoLabel.fontSize = 15;
+                    // infoLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_Left;
+                    // infoLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                    // infoLabel.paddingLeft = 20;
+                    // infoLabel.paddingTop = 20;
+                    // advancedTexture.addControl(infoLabel);
 
-                    // text follow camera
-                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                        if (state === BABYLON.WebXRState.IN_XR) {
-                            textPlane.parent = xrHelper.baseExperience.camera;
-                        }
-                    });
+                    // // text follow camera
+                    // xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+                    //     if (state === BABYLON.WebXRState.IN_XR) {
+                    //         textPlane.parent = xrHelper.baseExperience.camera;
+                    //     }
+                    // });
 
                     return scene;
                 }
