@@ -299,7 +299,7 @@
                                 });
 
                             };
-                            
+
                             const bButton = motionController.getComponent("b-button");
                             if (bButton) {
                                 bButton.onButtonStateChangedObservable.add(() => {
@@ -308,8 +308,10 @@
                                         func = funcs[func_num];
                                         sphere.position =  new BABYLON.Vector3(0,2,65);
                                         xrCamera.position = new BABYLON.Vector3(0,7,83);
+                                        xrHelper.teleportation.removeFloorMesh(graph);
                                         graph.dispose();
                                         graph = createGraphMesh(scene, 70, 0.25, func);
+                                        xrHelper.teleportation.addFloorMesh(graph);
                                     }
                                 });
 
