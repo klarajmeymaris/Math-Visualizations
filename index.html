@@ -276,10 +276,13 @@
                                                 sphere.position
                                             );
 
-                                            if (distance < 0.3) {
-                                            sphere.setParent(controller.grip || controller.pointer); // Attach to controller
+                                            if (distance < 3) {
+                                                sphere.setParent(null);
+
+                                                sphere.setParent(controller.grip || controller.pointer); // Attach to controller
                                             }
-                                        } else {
+                                        } 
+                                        else {
                                             sphere.setParent(null); // Release
                                         }
                                     }
