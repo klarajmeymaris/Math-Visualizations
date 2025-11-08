@@ -70,7 +70,7 @@
 
                     //ground
                     const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 300, height: 300 }, scene);
-                    ground.position.y = -20;
+                    ground.position.y = -5;
                     const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                     groundMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
                     // groundMaterial.wireframe = true;
@@ -232,28 +232,28 @@
                     // });
                     //camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
 
-                    // // Drag logic for keyboard
-                    // let isDragging = false;
-                    // let dragPlane = BABYLON.MeshBuilder.CreatePlane("dragPlane", { size: 100 }, scene);
-                    // dragPlane.isVisible = false;
-                    // scene.onPointerDown = function (evt, pickResult) {
-                    //     if (evt.button === 2 && pickResult.hit && pickResult.pickedMesh === sphere) {
-                    //         isDragging = true;
-                    //         dragPlane.position = sphere.position.clone();
-                    //         dragPlane.lookAt(camera.position);
-                    //     }};
-                    // scene.onPointerUp = function () {
-                    //     isDragging = false;
-                    // };
-                    // scene.onPointerMove = function (evt) {
-                    //     if (!isDragging) return;
+                    // Drag logic for keyboard
+                    let isDragging = false;
+                    let dragPlane = BABYLON.MeshBuilder.CreatePlane("dragPlane", { size: 100 }, scene);
+                    dragPlane.isVisible = false;
+                    scene.onPointerDown = function (evt, pickResult) {
+                        if (evt.button === 2 && pickResult.hit && pickResult.pickedMesh === sphere) {
+                            isDragging = true;
+                            dragPlane.position = sphere.position.clone();
+                            dragPlane.lookAt(camera.position);
+                        }};
+                    scene.onPointerUp = function () {
+                        isDragging = false;
+                    };
+                    scene.onPointerMove = function (evt) {
+                        if (!isDragging) return;
 
-                    //     const pick = scene.pick(scene.pointerX, scene.pointerY, mesh => mesh === dragPlane);
-                    //     if (pick.hit) {
-                    //         sphere.position.x = pick.pickedPoint.x;
-                    //         sphere.position.z = pick.pickedPoint.z;
-                    //     }
-                    // };
+                        const pick = scene.pick(scene.pointerX, scene.pointerY, mesh => mesh === dragPlane);
+                        if (pick.hit) {
+                            sphere.position.x = pick.pickedPoint.x;
+                            sphere.position.z = pick.pickedPoint.z;
+                        }
+                    };
                     
                     // // bottons for VR (drag logic and teleport button)
                     // xrHelper.input.onControllerAddedObservable.add(controller => {
