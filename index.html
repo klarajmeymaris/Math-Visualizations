@@ -97,6 +97,7 @@
                     sphere.material = sphereTexture;
 
                     sphere.isPickable = true;
+                    sphere.checkCollisions = true;
                     sphere.physicsImpostor = new BABYLON.PhysicsImpostor(
                         sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 0 }, scene
                     );
@@ -264,30 +265,51 @@
                     // bottons for VR (drag logic and teleport button)
                     xrHelper.input.onControllerAddedObservable.add(controller => {
                         controller.onMotionControllerInitObservable.add(motionController => {
+                            // const triggerComponent = motionController.getComponent("trigger");
+
+                            // if (triggerComponent) {
+                            //     triggerComponent.onButtonStateChangedObservable.add(() => {
+                            //         if (triggerComponent.changes.pressed) {
+                            //             if (triggerComponent.pressed) {
+                            //                 // Check if controller is near the sphere
+                            //                 const distance = BABYLON.Vector3.Distance(
+                            //                     controller.grip?.position || controller.pointer.position,
+                            //                     sphere.position
+                            //                 );
+
+                            //                 if (distance < 3) {
+                            //                     sphere.setParent(null);
+                            //                     sphere.setParent(controller.grip || controller.pointer); // Attach to controller
+                            //                     motionController.pulse(0.5, 100); // optional haptic feedback
+                            //                 }
+                            //             } 
+                            //             else {
+                            //                 sphere.setParent(null); // Release
+                            //             }
+                            //         }
+                            //     });
+                            // }
+                            const grip = controller.grip || controller.pointer;
+                            if (!grip) return;
+
+                            const motionController = controller.motionController;
+                            if (!motionController) return;
+
                             const triggerComponent = motionController.getComponent("trigger");
+                            if (!triggerComponent) return;
 
-                            if (triggerComponent) {
-                                triggerComponent.onButtonStateChangedObservable.add(() => {
-                                    if (triggerComponent.changes.pressed) {
-                                        if (triggerComponent.pressed) {
-                                            // Check if controller is near the sphere
-                                            const distance = BABYLON.Vector3.Distance(
-                                                controller.grip?.position || controller.pointer.position,
-                                                sphere.position
-                                            );
+                            triggerComponent.onButtonStateChangedObservable.add(() => {
+                                const distance = BABYLON.Vector3.Distance(grip.position, sphere.position);
 
-                                            if (distance < 3) {
-                                                sphere.setParent(null);
-                                                sphere.setParent(controller.grip || controller.pointer); // Attach to controller
-                                                motionController.pulse(0.5, 100); // optional haptic feedback
-                                            }
-                                        } 
-                                        else {
-                                            sphere.setParent(null); // Release
-                                        }
-                                    }
-                                });
-                            }
+                                if (triggerComponent.pressed && distance < 3) {
+                                    sphere.setParent(null); // Ensure clean re-parenting
+                                    sphere.setParent(grip); // Attach to controller
+                                    motionController.pulse(0.5, 100); // Haptic feedback on grab
+                                } else if (!triggerComponent.pressed && sphere.parent === grip) {
+                                    sphere.setParent(null); // Release
+                                    motionController.pulse(0.3, 50); // Optional feedback on release
+                                }
+
 
                             const aButton = motionController.getComponent("a-button");
                             if (aButton) {
