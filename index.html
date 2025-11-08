@@ -59,7 +59,6 @@
                     dome.material = domeMat;
                     dome.rotation.x = Math.PI;
 
-
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
                     camera.attachControl(canvas, true);
@@ -175,7 +174,7 @@
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
-                            floorMeshes: [ground,platform], // Use your custom ground for teleportation
+                            floorMeshes: [ground,platform, graph], // Use your custom ground for teleportation
                             disableTeleportation: false,
                         })
                     xrCamera = xrHelper.baseExperience.camera;
