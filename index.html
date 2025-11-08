@@ -255,57 +255,57 @@
                         }
                     };
                     
-                    // // bottons for VR (drag logic and teleport button)
-                    // xrHelper.input.onControllerAddedObservable.add(controller => {
-                    //     controller.onMotionControllerInitObservable.add(motionController => {
-                    //         const triggerComponent = motionController.getComponent("trigger");
+                    // bottons for VR (drag logic and teleport button)
+                    xrHelper.input.onControllerAddedObservable.add(controller => {
+                        controller.onMotionControllerInitObservable.add(motionController => {
+                            const triggerComponent = motionController.getComponent("trigger");
 
-                    //         if (triggerComponent) {
-                    //             triggerComponent.onButtonStateChangedObservable.add(() => {
-                    //                 if (triggerComponent.changes.pressed) {
-                    //                     if (triggerComponent.pressed) {
-                    //                         // Check if controller is near the sphere
-                    //                         const distance = BABYLON.Vector3.Distance(
-                    //                         controller.grip?.position || controller.pointer.position,
-                    //                         sphere.position
-                    //                         );
+                            if (triggerComponent) {
+                                triggerComponent.onButtonStateChangedObservable.add(() => {
+                                    if (triggerComponent.changes.pressed) {
+                                        if (triggerComponent.pressed) {
+                                            // Check if controller is near the sphere
+                                            const distance = BABYLON.Vector3.Distance(
+                                                controller.grip?.position || controller.pointer.position,
+                                                sphere.position
+                                            );
 
-                    //                         if (distance < 0.3) {
-                    //                         sphere.setParent(controller.grip || controller.pointer); // Attach to controller
-                    //                         }
-                    //                     } else {
-                    //                         sphere.setParent(null); // Release
-                    //                     }
-                    //                 }
-                    //             });
-                    //         }
+                                            if (distance < 0.3) {
+                                            sphere.setParent(controller.grip || controller.pointer); // Attach to controller
+                                            }
+                                        } else {
+                                            sphere.setParent(null); // Release
+                                        }
+                                    }
+                                });
+                            }
 
-                    //         const aButton = motionController.getComponent("a-button");
+                            // const aButton = motionController.getComponent("a-button");
+                            // if (aButton) {
+                            //     aButton.onButtonStateChangedObservable.add(() => {
+                            //         if (aButton.changes.pressed && aButton.pressed) {
+                            //             const userPos = xrHelper.baseExperience.camera.position;
+                            //             sphere.position = userPos; 
+                            //         }
+                            //     });
 
-                    //         if (aButton) {
-                    //             aButton.onButtonStateChangedObservable.add(() => {
-                    //                 if (aButton.changes.pressed && aButton.pressed) {
-                    //                     const userPos = xrHelper.baseExperience.camera.position;
-                    //                     sphere.position = userPos; 
-                    //                 }
-                    //             });
+                            // };
+                            // const bButton = motionController.getComponent("b-button");
+                            // if (bButton) {
+                            //     bButton.onButtonStateChangedObservable.add(() => {
+                            //         if (bButton.changes.pressed && bButton.pressed) {
+                            //             func_num = (func_num + 1) % funcs.length;
+                            //             func = funcs[func_num];
+                            //             sphere.position =  new BABYLON.Vector3(0,2,65);
+                            //             xrCamera.position = new BABYLON.Vector3(0,7,83);
+                            //             graph.dispose();
+                            //             graph = createGraphMesh(scene, 70, 0.25, func);
+                            //         }
+                            //     });
 
-                    //         };
-                    //         if (bButton) {
-                    //             aButton.onButtonStateChangedObservable.add(() => {
-                    //                 if (bButton.changes.pressed && bButton.pressed) {
-                    //                     func_num = (func_num + 1) % funcs.length;
-                    //                     func = funcs[func_num];
-                    //                     sphere.position =  new BABYLON.Vector3(0,2,65);
-                    //                     xrCamera.position = new BABYLON.Vector3(0,7,83);
-                    //                     graph.dispose();
-                    //                     graph = createGraphMesh(scene, 70, 0.25, func);
-                    //                 }
-                    //             });
-
-                    //         };
-                    //     });
-                    // });
+                            // };
+                        });
+                    });
 
                     // //text for min and max values
                     // const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
