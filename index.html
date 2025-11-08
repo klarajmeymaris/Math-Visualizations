@@ -263,117 +263,81 @@
                     // };
                     
                     // bottons for VR (drag logic and teleport button)
-                    // xrHelper.input.onControllerAddedObservable.add(controller => {
-                    //     controller.onMotionControllerInitObservable.add(motionController => {
-                    //         const triggerComponent = motionController.getComponent("trigger");
-
-                    //         if (triggerComponent) {
-                    //             triggerComponent.onButtonStateChangedObservable.add(() => {
-                    //                 if (triggerComponent.changes.pressed) {
-                    //                     if (triggerComponent.pressed) {
-                    //                         // Check if controller is near the sphere
-                    //                         const distance = BABYLON.Vector3.Distance(
-                    //                             controller.grip?.position || controller.pointer.position,
-                    //                             sphere.position
-                    //                         );
-
-                    //                         if (distance < 3) {
-                    //                             sphere.setParent(null);
-                    //                             sphere.setParent(controller.grip || controller.pointer); // Attach to controller
-                    //                             motionController.pulse(0.5, 100); // optional haptic feedback
-                    //                         }
-                    //                     } 
-                    //                     else {
-                    //                         sphere.setParent(null); // Release
-                    //                     }
-                    //                 }
-                    //             });
-                    //         }
-
-                    //         const aButton = motionController.getComponent("a-button");
-                    //         if (aButton) {
-                    //             aButton.onButtonStateChangedObservable.add(() => {
-                    //                 if (aButton.changes.pressed && aButton.pressed) {
-                    //                     const userPos = xrHelper.baseExperience.camera.position;
-                    //                     sphere.position = userPos.clone(); 
-                    //                 }
-                    //             });
-
-                    //         };
-
-                    //         const bButton = motionController.getComponent("b-button");
-                    //         if (bButton) {
-                    //             bButton.onButtonStateChangedObservable.add(() => {
-                    //                 if (bButton.changes.pressed && bButton.pressed) {
-                    //                     func_num = (func_num + 1) % funcs.length;
-                    //                     func = funcs[func_num];
-                    //                     sphere.position =  new BABYLON.Vector3(0,2,65);
-                    //                     xrCamera.position = new BABYLON.Vector3(0,7,83);
-                    //                     xrHelper.teleportation.removeFloorMesh(graph);
-                    //                     graph.dispose();
-                    //                     graph = createGraphMesh(scene, 70, 0.25, func);
-                    //                     xrHelper.teleportation.addFloorMesh(graph);
-                    //                 }
-                    //             });
-
-                    //         };
-                    //     });
-                    // });
                     xrHelper.input.onControllerAddedObservable.add(controller => {
-                    controller.onMotionControllerInitObservable.add(motionController => {
-                        const grip = controller.grip || controller.pointer;
-                        if (!grip) return;
+                        controller.onMotionControllerInitObservable.add(motionController => {
+                            // const triggerComponent = motionController.getComponent("trigger");
 
-                        const triggerComponent = motionController.getComponent("trigger");
-                        const aButton = motionController.getComponent("a-button");
-                        const bButton = motionController.getComponent("b-button");
+                            // if (triggerComponent) {
+                            //     triggerComponent.onButtonStateChangedObservable.add(() => {
+                            //         if (triggerComponent.changes.pressed) {
+                            //             if (triggerComponent.pressed) {
+                            //                 // Check if controller is near the sphere
+                            //                 const distance = BABYLON.Vector3.Distance(
+                            //                     controller.grip?.position || controller.pointer.position,
+                            //                     sphere.position
+                            //                 );
 
-                        if (!triggerComponent) return;
+                            //                 if (distance < 3) {
+                            //                     sphere.setParent(null);
+                            //                     sphere.setParent(controller.grip || controller.pointer); // Attach to controller
+                            //                     motionController.pulse(0.5, 100); // optional haptic feedback
+                            //                 }
+                            //             } 
+                            //             else {
+                            //                 sphere.setParent(null); // Release
+                            //             }
+                            //         }
+                            //     });
+                            // }
+                            const grip = controller.grip || controller.pointer;
+                            if (!grip) return;
 
-                        // ✅ Grab / Release logic
-                        triggerComponent.onButtonStateChangedObservable.add(() => {
-                            const distance = BABYLON.Vector3.Distance(grip.position, sphere.position);
+                            const triggerComponent = motionController.getComponent("trigger");
+                            if (!triggerComponent) return;
 
-                            if (triggerComponent.pressed && distance < 3) {
-                                sphere.setParent(null);
-                                sphere.setParent(grip);
-                                motionController.pulse(0.5, 100); // Grab feedback
-                            } else if (!triggerComponent.pressed && sphere.parent === grip) {
-                                sphere.setParent(null);
-                                motionController.pulse(0.3, 50); // Release feedback
-                            }
+                            triggerComponent.onButtonStateChangedObservable.add(() => {
+                                const distance = BABYLON.Vector3.Distance(grip.position, sphere.position);
+
+                                if (triggerComponent.pressed && distance < 3) {
+                                    sphere.setParent(null); // Clean re-parenting
+                                    sphere.setParent(grip); // Attach to controller
+                                    motionController.pulse(0.5, 100); // Haptic feedback
+                                } else if (!triggerComponent.pressed && sphere.parent === grip) {
+                                    sphere.setParent(null); // Release
+                                    motionController.pulse(0.3, 50); // Optional release feedback
+                                }
+                            });
+
+
+                            const aButton = motionController.getComponent("a-button");
+                            if (aButton) {
+                                aButton.onButtonStateChangedObservable.add(() => {
+                                    if (aButton.changes.pressed && aButton.pressed) {
+                                        const userPos = xrHelper.baseExperience.camera.position;
+                                        sphere.position = userPos.clone(); 
+                                    }
+                                });
+
+                            };
+
+                            const bButton = motionController.getComponent("b-button");
+                            if (bButton) {
+                                bButton.onButtonStateChangedObservable.add(() => {
+                                    if (bButton.changes.pressed && bButton.pressed) {
+                                        func_num = (func_num + 1) % funcs.length;
+                                        func = funcs[func_num];
+                                        sphere.position =  new BABYLON.Vector3(0,2,65);
+                                        xrCamera.position = new BABYLON.Vector3(0,7,83);
+                                        xrHelper.teleportation.removeFloorMesh(graph);
+                                        graph.dispose();
+                                        graph = createGraphMesh(scene, 70, 0.25, func);
+                                        xrHelper.teleportation.addFloorMesh(graph);
+                                    }
+                                });
+
+                            };
                         });
-
-                        // ✅ A Button: Teleport sphere to user
-                        if (aButton) {
-                            aButton.onButtonStateChangedObservable.add(() => {
-                                if (aButton.changes.pressed && aButton.pressed) {
-                                    const userPos = xrHelper.baseExperience.camera.position;
-                                    sphere.position = userPos.clone();
-                                }
-                            });
-                        }
-
-                        // ✅ B Button: Switch graph and reset
-                        if (bButton) {
-                            bButton.onButtonStateChangedObservable.add(() => {
-                                if (bButton.changes.pressed && bButton.pressed) {
-                                    func_num = (func_num + 1) % funcs.length;
-                                    func = funcs[func_num];
-
-                                    sphere.position = new BABYLON.Vector3(0, 2, 65);
-                                    xrCamera.position = new BABYLON.Vector3(0, 7, 83);
-
-                                    xrHelper.teleportation.removeFloorMesh(graph);
-                                    graph.dispose();
-
-                                    graph = createGraphMesh(scene, 70, 0.25, func);
-                                    xrHelper.teleportation.addFloorMesh(graph);
-                                }
-                            });
-                        }
                     });
-                });
 
 
                     // //text for min and max values
