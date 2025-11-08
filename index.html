@@ -278,8 +278,8 @@
 
                                             if (distance < 3) {
                                                 sphere.setParent(null);
-
                                                 sphere.setParent(controller.grip || controller.pointer); // Attach to controller
+                                                motionController.pulse(0.5, 100); // optional haptic feedback
                                             }
                                         } 
                                         else {
