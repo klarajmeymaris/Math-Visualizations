@@ -294,7 +294,7 @@
                                 aButton.onButtonStateChangedObservable.add(() => {
                                     if (aButton.changes.pressed && aButton.pressed) {
                                         const userPos = xrHelper.baseExperience.camera.position;
-                                        sphere.position = userPos; 
+                                        sphere.position = userPos.clone(); 
                                     }
                                 });
 
