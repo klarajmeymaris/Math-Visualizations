@@ -206,34 +206,34 @@
                         ];
                     const line = BABYLON.MeshBuilder.CreateLines("line", { points: points }, scene);
 
-                    //keyboard input
-                    //camera.keysUp.push(87);
-                    //camera.keysDown.push(83);
-                    //camera.keysLeft.push(65);
-                    //camera.keysRight.push(68);
-                    //scene.onKeyboardObservable.add((kbInfo) => {
-                    //    switch (kbInfo.type) {
-                    //        case BABYLON.KeyboardEventTypes.KEYDOWN:
-                    //            if (kbInfo.event.key === "e") {
-                    //                camera.cameraDirection.y += 0.2;
-                    //            }
-                    //             if (kbInfo.event.key === "q") {
-                    //                 camera.cameraDirection.y -= 0.2;
-                    //             }
-                    //             if (kbInfo.event.key === "n"){
-                    //                 func_num = (func_num + 1) % funcs.length;
-                    //                 func = funcs[func_num];
-                    //                 sphere.position =  new BABYLON.Vector3(0,2,65);
-                    //                 camera.position = new BABYLON.Vector3(0,7,83);
-                    //                 camera.target = new BABYLON.Vector3.Zero();
-                    //                 graph.dispose();
-                    //                 graph = createGraphMesh(scene, 70, 0.25, func);
+                    keyboard input
+                    camera.keysUp.push(87);
+                    camera.keysDown.push(83);
+                    camera.keysLeft.push(65);
+                    camera.keysRight.push(68);
+                    scene.onKeyboardObservable.add((kbInfo) => {
+                       switch (kbInfo.type) {
+                           case BABYLON.KeyboardEventTypes.KEYDOWN:
+                               if (kbInfo.event.key === "e") {
+                                   camera.cameraDirection.y += 0.2;
+                               }
+                                if (kbInfo.event.key === "q") {
+                                    camera.cameraDirection.y -= 0.2;
+                                }
+                                if (kbInfo.event.key === "n"){
+                                    func_num = (func_num + 1) % funcs.length;
+                                    func = funcs[func_num];
+                                    sphere.position =  new BABYLON.Vector3(0,2,65);
+                                    camera.position = new BABYLON.Vector3(0,7,83);
+                                    camera.target = new BABYLON.Vector3.Zero();
+                                    graph.dispose();
+                                    graph = createGraphMesh(scene, 70, 0.25, func);
                                     
-                    //             };
-                    //             break;
-                    //     }
-                    // });
-                    //camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
+                                };
+                                break;
+                        }
+                    });
+                    camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
 
                     // // Drag logic for keyboard
                     // let isDragging = false;
