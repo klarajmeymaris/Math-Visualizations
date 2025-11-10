@@ -298,21 +298,34 @@
                         });
                     });
 
+                    // Create a plane to hold the text
+                    const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1, height: 0.5 }, scene);
+                    textPlane.position = new BABYLON.Vector3(0, 2, 2); // Position in front of the camera
 
-                    //text for min and max values
-                    const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
-                    textPlane.position = new BABYLON.Vector3(0, 50, 0);
-
+                    // Attach GUI texture to the plane
                     const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
-                    positionLabel = new BABYLON.GUI.TextBlock();
-                    positionLabel.text = "";
-                    positionLabel.color = "white";
-                    positionLabel.fontSize = 24;
+
+                    // Create a text block
+                    const textBlock = new BABYLON.GUI.TextBlock();
+                    textBlock.text = "Hello VR!";
+                    textBlock.color = "white";
+                    textBlock.fontSize = 48;
+                    advancedTexture.addControl(textBlock);
+
+                    // //text for min and max values
+                    // const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
+                    // textPlane.position = new BABYLON.Vector3(0, 50, 0);
+
+                    // const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
+                    // positionLabel = new BABYLON.GUI.TextBlock();
+                    // positionLabel.text = "";
+                    // positionLabel.color = "white";
+                    // positionLabel.fontSize = 24;
                     // positionLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
                     // positionLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
                     // positionLabel.paddingRight = 20;
                     // positionLabel.paddingTop = 20;
-                    advancedTexture.addControl(positionLabel);
+                    // advancedTexture.addControl(positionLabel);
 
                     // //text for info
                     // infoLabel = new BABYLON.GUI.TextBlock();
@@ -325,13 +338,6 @@
                     // infoLabel.paddingLeft = 20;
                     // infoLabel.paddingTop = 20;
                     // advancedTexture.addControl(infoLabel);
-
-                    // // text follow camera
-                    // xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                    //     if (state === BABYLON.WebXRState.IN_XR) {
-                    //         textPlane.parent = xrHelper.baseExperience.camera;
-                    //     }
-                    // });
 
                     return scene;
                 }
