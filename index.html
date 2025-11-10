@@ -263,9 +263,7 @@
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
                                     if (triggerComponent.pressed) {
-                                        console.log("Trigger is pressed!");
-                                    } else {
-                                        console.log("Trigger is released.");
+                                        sphere.position = xrCamera.position;
                                     }
                                 });
                             };
@@ -345,7 +343,6 @@
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
-                    sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     
                     // Rebuild the curve with the new radius
@@ -387,6 +384,7 @@
                         const newCurve = createCurve(scene, radius, 0.02, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
+                        sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
                         //updates text
                         // positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
                     }
