@@ -95,9 +95,6 @@
                     sphereTexture.diffuseColor = new BABYLON.Color3(0,0,0);
                     sphereTexture.specularColor = new BABYLON.Color3(0, 0, 0);
                     sphere.material = sphereTexture;
-
-                    sphere.isPickable = true;
-
                  
                     //graph
                     function createGraphMesh(scene, size, step, heightFunction) {
@@ -196,10 +193,10 @@
                         const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
                         return curve
                     }
-                    const surfaceCurve = createCurve(scene, 10,0.1,func);
+                    const surfaceCurve = createCurve(scene, 10,0.02,func);
                     surfaceCurve.position.y += 0.1
                     
-                    //point to evaluate curve
+                    //line at the origin
                     const points = [
                         new BABYLON.Vector3(0, 0, 0),
                         new BABYLON.Vector3(0, 50, 0),
@@ -386,7 +383,7 @@
                             return curve;
                         }
                         surfaceCurve.position.y += 0.1;
-                        const newCurve = createCurve(scene, radius, 0.05, func);
+                        const newCurve = createCurve(scene, radius, 0.02, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
                         //updates text
