@@ -59,7 +59,6 @@
                     dome.material = domeMat;
                     dome.rotation.x = Math.PI;
 
-
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
                     camera.attachControl(canvas, true);
@@ -71,7 +70,7 @@
 
                     //ground
                     const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 300, height: 300 }, scene);
-                    ground.position.y = -20;
+                    ground.position.y = -5;
                     const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                     groundMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
                     groundMaterial.wireframe = true;
@@ -175,7 +174,7 @@
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
-                            floorMeshes: [ground,platform,graph], // Use your custom ground for teleportation
+                            floorMeshes: [ground,platform, graph], // Use your custom ground for teleportation
                             disableTeleportation: false,
                         })
                     xrCamera = xrHelper.baseExperience.camera;
@@ -194,27 +193,27 @@
                         const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
                         return curve
                     }
-                    const surfaceCurve = createCurve(scene, 10,0.1,func);
+                    const surfaceCurve = createCurve(scene, 10,0.02,func);
                     surfaceCurve.position.y += 0.1
                     
-                    //point to evaluate curve
+                    //line at the origin
                     const points = [
                         new BABYLON.Vector3(0, 0, 0),
                         new BABYLON.Vector3(0, 50, 0),
                         ];
                     const line = BABYLON.MeshBuilder.CreateLines("line", { points: points }, scene);
 
-                    //keyboard input
+                    // keyboard input
                     camera.keysUp.push(87);
                     camera.keysDown.push(83);
                     camera.keysLeft.push(65);
                     camera.keysRight.push(68);
                     scene.onKeyboardObservable.add((kbInfo) => {
-                        switch (kbInfo.type) {
-                            case BABYLON.KeyboardEventTypes.KEYDOWN:
-                                if (kbInfo.event.key === "e") {
-                                    camera.cameraDirection.y += 0.2;
-                                }
+                       switch (kbInfo.type) {
+                           case BABYLON.KeyboardEventTypes.KEYDOWN:
+                               if (kbInfo.event.key === "e") {
+                                   camera.cameraDirection.y += 0.2;
+                               }
                                 if (kbInfo.event.key === "q") {
                                     camera.cameraDirection.y -= 0.2;
                                 }
@@ -259,48 +258,39 @@
                     // bottons for VR (drag logic and teleport button)
                     xrHelper.input.onControllerAddedObservable.add(controller => {
                         controller.onMotionControllerInitObservable.add(motionController => {
-                            const triggerComponent = motionController.getComponent("trigger");
+                            // const triggerComponent = motionController.getComponent("select");
 
-                            if (triggerComponent) {
-                                triggerComponent.onButtonStateChangedObservable.add(() => {
-                                    if (triggerComponent.changes.pressed) {
-                                        if (triggerComponent.pressed) {
-                                            // Check if controller is near the sphere
-                                            const distance = BABYLON.Vector3.Distance(
-                                            controller.grip?.position || controller.pointer.position,
-                                            sphere.position
-                                            );
-
-                                            if (distance < 0.3) {
-                                            sphere.setParent(controller.grip || controller.pointer); // Attach to controller
-                                            }
-                                        } else {
-                                            sphere.setParent(null); // Release
-                                        }
-                                    }
-                                });
-                            }
+                            // if (triggerComponent) {
+                            //     triggerComponent.onButtonStateChangedObservable.add(() => {
+                            //         if (triggerComponent.pressed) {
+                            //             sphere.position = xrCamera.position;
+                            //         }
+                            //     });
+                            // };
 
                             const aButton = motionController.getComponent("a-button");
-
                             if (aButton) {
                                 aButton.onButtonStateChangedObservable.add(() => {
                                     if (aButton.changes.pressed && aButton.pressed) {
                                         const userPos = xrHelper.baseExperience.camera.position;
-                                        sphere.position = userPos; 
+                                        sphere.position = userPos.clone(); 
                                     }
                                 });
 
                             };
+
+                            const bButton = motionController.getComponent("b-button");
                             if (bButton) {
-                                aButton.onButtonStateChangedObservable.add(() => {
+                                bButton.onButtonStateChangedObservable.add(() => {
                                     if (bButton.changes.pressed && bButton.pressed) {
                                         func_num = (func_num + 1) % funcs.length;
                                         func = funcs[func_num];
                                         sphere.position =  new BABYLON.Vector3(0,2,65);
                                         xrCamera.position = new BABYLON.Vector3(0,7,83);
+                                        xrHelper.teleportation.removeFloorMesh(graph);
                                         graph.dispose();
                                         graph = createGraphMesh(scene, 70, 0.25, func);
+                                        xrHelper.teleportation.addFloorMesh(graph);
                                     }
                                 });
 
@@ -310,7 +300,7 @@
 
                     //text for min and max values
                     const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
-                    textPlane.position = new BABYLON.Vector3(0, 2, 2);
+                    textPlane.position = new BABYLON.Vector3(0, 50, 0);
 
                     const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
                     positionLabel = new BABYLON.GUI.TextBlock();
@@ -335,13 +325,6 @@
                     infoLabel.paddingTop = 20;
                     advancedTexture.addControl(infoLabel);
 
-                    // text follow camera
-                    xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-                        if (state === BABYLON.WebXRState.IN_XR) {
-                            textPlane.parent = xrHelper.baseExperience.camera;
-                        }
-                    });
-
                     return scene;
                 }
 
@@ -352,7 +335,6 @@
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
-                    sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     
                     // Rebuild the curve with the new radius
@@ -391,11 +373,12 @@
                             return curve;
                         }
                         surfaceCurve.position.y += 0.1;
-                        const newCurve = createCurve(scene, radius, 0.05, func);
+                        const newCurve = createCurve(scene, radius, 0.02, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
+                        sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
                         //updates text
-                        positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
+                        // positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
                     }
                     
                     scene.render();
