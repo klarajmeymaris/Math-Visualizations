@@ -58,6 +58,7 @@
                     domeMat.specularColor = new BABYLON.Color3(0,0,0);
                     dome.material = domeMat;
                     dome.rotation.x = Math.PI;
+                    // dome.rotation.z = Math.PI/2;
 
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
@@ -65,8 +66,14 @@
                     camera.target = new BABYLON.Vector3.Zero();
 
                     //light
-                    const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
-                    hemiLight.intensity = 1.0;
+                    // var light = new BABYLON.PointLight('pointLight',new BABYLON.Vector3(0,80,0),scene);
+                    // var light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), scene);
+                    var lightdown = new BABYLON.SpotLight('spotLight1', new BABYLON.Vector3(0,-5,0), new BABYLON.Vector3(0,-1,0),
+                         BABYLON.Tools.ToRadians(180),0.1, scene);
+                    lightdown.intensity = 0.5;
+                    var lightup = new BABYLON.SpotLight('spotLight1', new BABYLON.Vector3(0,-5,0), new BABYLON.Vector3(0,1,0),
+                         BABYLON.Tools.ToRadians(180),0.1, scene);
+                    lightup.intensity = 0.8;
 
                     //ground
                     const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 300, height: 300 }, scene);
@@ -299,10 +306,7 @@
                     });
 
                     //text for min and max values
-                    const textPlane = BABYLON.MeshBuilder.CreatePlane("textPlane", { width: 1.5, height: 0.8 }, scene);
-                    textPlane.position = new BABYLON.Vector3(0, 50, 0);
-
-                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textPlane);
+                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
                     positionLabel = new BABYLON.GUI.TextBlock();
                     positionLabel.text = "";
                     positionLabel.color = "white";
@@ -315,8 +319,8 @@
 
                     //text for info
                     infoLabel = new BABYLON.GUI.TextBlock();
-                    infoLabel.text = "           VR Controls\n- Joystick: Teleportantion\n- "+
-                                        "Trigger: Moving sphere\n- A: Teleport sphere\n- B: Switch graphs";
+                    infoLabel.text = "           VR Controls\n- Joystick: Teleportantion\n"+
+                                        "- A: Teleport sphere\n- B: Switch graphs";
                     infoLabel.color = "white";
                     infoLabel.fontSize = 15;
                     infoLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_Left;
@@ -377,8 +381,8 @@
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
                         sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
-                        //updates text
-                        // positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
+                        // updates text
+                        positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
                     }
                     
                     scene.render();
