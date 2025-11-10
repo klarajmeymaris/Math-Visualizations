@@ -261,6 +261,16 @@
                     // bottons for VR (drag logic and teleport button)
                     xrHelper.input.onControllerAddedObservable.add(controller => {
                         controller.onMotionControllerInitObservable.add(motionController => {
+                            const triggerComponent = motionController.getComponent("trigger");
+
+                            if (triggerComponent) {
+                                triggerComponent.onButtonStateChangedObservable.add(() => {
+                                    if (triggerComponent.pressed) {
+                                        console.log("Trigger is pressed!");
+                                    } else {
+                                        console.log("Trigger is released.");
+                                    }
+                            });
 
                             const aButton = motionController.getComponent("a-button");
                             if (aButton) {
