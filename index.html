@@ -191,7 +191,7 @@
                             disableTeleportation: false,
                         })
                     xrCamera = xrHelper.baseExperience.camera;
-                    xrCamera.position = new BABYLON.Vector3(0,10,83);
+                    xrCamera.position = new BABYLON.Vector3(0,7,83);
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -313,7 +313,6 @@
             
                     const infoLabel = "           VR Controls\n- Joystick: Teleportantion\n"+
                                         "- A: Teleport sphere\n- B: Switch graphs";
-
                     const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
                         size: 3,
                         resolution: 64, 
@@ -402,7 +401,7 @@
                         if (reload_text_ct >5){
                             const textMat = edText.material;
                             edText.dispose();
-                            updated_str = `Delta: ${radius.toFixed(4)}\nEpsilon: ${max.toFixed(4)-min.toFixed(4)}`;
+                            updated_str = `Delta: ${radius.toFixed(4)}\nEpsilon: ${(max-min).toFixed(4)}`;
                             const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
                                 size: 3,
                                 resolution: 64, 
