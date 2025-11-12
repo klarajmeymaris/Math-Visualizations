@@ -4,8 +4,11 @@
         <meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
         <title>Epsilon Delta Visualization</title>
         <!--This sets up connecting to Babylon-->
+        <script src="https://cdn.babylonjs.com/earcut.min.js"></script>
         <script src="https://cdn.babylonjs.com/babylon.max.js"></script>
         <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+        
+
         <style>
 
             html,
@@ -44,7 +47,12 @@
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
                 let func = func0;
+                let min = 10000;
+                let max = -10000;
                 let reload_curve = false;
+                let reload_text = false;
+                let reload_text_ct = 0;
+                var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
 
                 const createScene = async function () {
                     //scene
@@ -304,30 +312,31 @@
                             };
                         });
                     });
-
-                    //text for min and max values
-                    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-                    positionLabel = new BABYLON.GUI.TextBlock();
-                    positionLabel.text = "";
-                    positionLabel.color = "white";
-                    positionLabel.fontSize = 24;
-                    positionLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-                    positionLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-                    positionLabel.paddingRight = 20;
-                    positionLabel.paddingTop = 20;
-                    advancedTexture.addControl(positionLabel);
-
-                    //text for info
-                    infoLabel = new BABYLON.GUI.TextBlock();
-                    infoLabel.text = "           VR Controls\n- Joystick: Teleportantion\n"+
+            
+                    const infoLabel = "           VR Controls\n- Joystick: Teleportantion\n"+
                                         "- A: Teleport sphere\n- B: Switch graphs";
-                    infoLabel.color = "white";
-                    infoLabel.fontSize = 15;
-                    infoLabel.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_Left;
-                    infoLabel.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-                    infoLabel.paddingLeft = 20;
-                    infoLabel.paddingTop = 20;
-                    advancedTexture.addControl(infoLabel);
+
+                    const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    const textMat = new BABYLON.PBRMaterial("textMat", scene);
+                    textMat.emissiveColor = new BABYLON.Color3(1, 1, 1); // bright white glow
+                    textMat.metallic = 0;
+                    textMat.roughness = 1;
+                    infoText.material = textMat;
+                    infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    infoText.position = new BABYLON.Vector3(50,60,-100);
+
+                    const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta:\nEpsilon:', fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    edText.material = textMat;
+                    edText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    edText.position = new BABYLON.Vector3(-50,60,-100);
 
                     return scene;
                 }
@@ -339,11 +348,11 @@
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
+                    const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
+                    const edText = scene.getMeshByName('edText');
                     
                     // Rebuild the curve with the new radius
-                    let min = 10000;
-                    let max = -10000;
                     if (!old_position.equals(sphere.position)){
                         reload_curve = true;
                         old_position = sphere.position.clone();
@@ -351,7 +360,9 @@
                     if (reload_curve){
                         reload_curve = 0;
                         surfaceCurve.dispose();
-                        const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
+                        min = 10000;
+                        max = -10000;
+                        
                         function createCurve(scene, radius, step, heightFunction){
                             surface_points = [];
                             for (theta = 0; theta <= 2*Math.PI+step; theta += step){
@@ -376,14 +387,37 @@
                             const curve = BABYLON.MeshBuilder.CreateLines('deltaCurve',{points:surface_points},scene);
                             return curve;
                         }
+                        
                         surfaceCurve.position.y += 0.1;
                         const newCurve = createCurve(scene, radius, 0.02, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
                         sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
-                        // updates text
-                        positionLabel.text = `Max: ${max.toFixed(4)}\nMin: ${min.toFixed(4)}`;
-                    }
+
+                        //relaod text now
+                        reload_text = true;
+                        reload_text_ct = 0;
+                    };
+                    // updates text
+                    if (reload_text){
+                        reload_text_ct +=1;
+                        if (reload_text_ct >5){
+                            const textMat = edText.material;
+                            edText.dispose();
+                            updated_str = `Delta: ${radius.toFixed(4)}\nEpsilon: ${max.toFixed(4)-min.toFixed(4)}`;
+                            const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
+                                size: 3,
+                                resolution: 64, 
+                                depth: 0.25
+                            });
+                            newText.material = textMat;
+                            newText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                            newText.position = new BABYLON.Vector3(-50,60,-100); 
+                            reload_text = false; 
+                            reload_text_ct = 0;
+                        }
+                        
+                    };
                     
                     scene.render();
 
