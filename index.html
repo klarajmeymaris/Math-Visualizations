@@ -276,7 +276,15 @@
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
                                     if (triggerComponent.pressed) {
-                                        sphere.position = xrCamera.position;
+                                        // Detach sphere from any parent
+                                        sphere.setParent(null);
+
+                                        // Move sphere to controller position
+                                        const controllerMesh = controller.grip || controller.pointer;
+                                        if (controllerMesh) {
+                                            sphere.position.copyFrom(controllerMesh.getAbsolutePosition());
+                                        }
+
                                     }
                                 });
                             };
