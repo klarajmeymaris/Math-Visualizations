@@ -278,11 +278,17 @@
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
                                     if (triggerComponent) {
-                                        // Move sphere to controller position
-                                        const controllerMesh = controller.grip || controller.pointer;
-                                        if (controllerMesh) {
-                                            sphere.position.copyFrom(controllerMesh.getAbsolutePosition());
+                                        // // Move sphere to controller position
+                                        // const controllerMesh = controller.grip || controller.pointer;
+                                        // if (controllerMesh) {
+                                        //     sphere.position.copyFrom(controllerMesh.getAbsolutePosition());
+                                        // }
+                                        const pointerMesh = controller.pointer;
+
+                                        if (pointerMesh) {
+                                            sphere.position.copyFrom(pointerMesh.getAbsolutePosition());
                                         }
+
 
                                     }
 
