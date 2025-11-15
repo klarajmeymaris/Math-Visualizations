@@ -47,6 +47,7 @@
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
                 let func = func0;
+                let xrCamera;
                 let reload_curve = false;
                 let reload_text = false;
                 let reload_text_ct = 0;
@@ -192,13 +193,6 @@
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
                     const teleportation = xrHelper.baseExperience.featuresManager.getEnabledFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
-                    if (teleportation) {
-                        teleportation.onAfterTeleportationObservable.add(() => {
-                            // Lower the camera height after teleport
-                            xrCamera.position.y -= 1.5;
-                        });
-                    }
-
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -356,6 +350,7 @@
                 const scene = await createScene();
                 
                 let old_position = BABYLON.Vector3.Zero();
+                let old_cameraPos = BABYLON.Vector3.Zero();
                 let min = 10000;
                 let max = -10000;
                 // run the render loop
@@ -364,6 +359,10 @@
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
+                    if (!old_cameraPos.equals(xrCamera.position)){
+                        old_cameraPos = xrCamera.position.clone();
+                        xrCamera.position.y -=1.5;
+                    };
                     
                     // Rebuild the curve with the new radius
                     if (!old_position.equals(sphere.position)){
