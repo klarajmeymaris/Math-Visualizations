@@ -207,7 +207,8 @@
                         return curve
                     }
                     const surfaceCurve = createCurve(scene, 10,0.02,func);
-                    surfaceCurve.position.y += 0.1
+                    // surfaceCurve.position.y += 0.1
+                    surfaceCurve.edgesWidth = 4;
                     
                     //line at the origin
                     const points = [
