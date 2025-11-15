@@ -192,7 +192,6 @@
                         })
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
-                    const teleportation = xrHelper.baseExperience.featuresManager.getEnabledFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -365,10 +364,10 @@
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
-                    if (!old_cameraPos.equals(xrCamera.position)){
-                        xrCamera.position.y -=1.5;
-                        old_cameraPos = xrCamera.position.clone();
-                    };
+                    // if (!old_cameraPos.equals(xrCamera.position)){
+                    //     xrCamera.position.y -=1.5;
+                    //     old_cameraPos = xrCamera.position.clone();
+                    // };
                     
                     // Rebuild the curve with the new radius
                     if (!old_position.equals(sphere.position)){
