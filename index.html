@@ -366,8 +366,8 @@
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
                     if (!old_cameraPos.equals(xrCamera.position)){
-                        old_cameraPos = xrCamera.position.clone();
                         xrCamera.position.y -=1.5;
+                        old_cameraPos = xrCamera.position.clone();
                     };
                     
                     // Rebuild the curve with the new radius
