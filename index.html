@@ -47,12 +47,13 @@
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
                 let func = func0;
-                let min = 10000;
-                let max = -10000;
                 let reload_curve = false;
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
+                let isTriggerPressed = false;
+                let activeControllerMesh = null;
+
 
                 const createScene = async function () {
                     //scene
@@ -207,7 +208,8 @@
                         return curve
                     }
                     const surfaceCurve = createCurve(scene, 10,0.02,func);
-                    surfaceCurve.position.y += 0.1
+                    // surfaceCurve.position.y += 0.1
+                    surfaceCurve.edgesWidth = 4;
                     
                     //line at the origin
                     const points = [
@@ -271,15 +273,26 @@
                     // bottons for VR (drag logic and teleport button)
                     xrHelper.input.onControllerAddedObservable.add(controller => {
                         controller.onMotionControllerInitObservable.add(motionController => {
-                            // const triggerComponent = motionController.getComponent("select");
+                            const triggerComponent = motionController.getComponent("xr-standard-trigger");
 
-                            // if (triggerComponent) {
-                            //     triggerComponent.onButtonStateChangedObservable.add(() => {
-                            //         if (triggerComponent.pressed) {
-                            //             sphere.position = xrCamera.position;
-                            //         }
-                            //     });
-                            // };
+                            if (triggerComponent) {
+                                triggerComponent.onButtonStateChangedObservable.add(() => {
+                                    if (triggerComponent) {
+                                        triggerComponent.onButtonStateChangedObservable.add(() => {
+                                            isTriggerPressed = triggerComponent.pressed;
+
+                                            if (isTriggerPressed) {
+                                                // Store the controller mesh to track
+                                                activeControllerMesh = controller.grip || controller.pointer;
+                                            } else {
+                                                // Stop tracking when trigger is released
+                                                activeControllerMesh = null;
+                                            }
+                                        });
+                                    }
+
+                                });
+                            };
 
                             const aButton = motionController.getComponent("a-button");
                             if (aButton) {
@@ -326,7 +339,7 @@
                     infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                     infoText.position = new BABYLON.Vector3(50,60,-100);
 
-                    const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta:\nEpsilon:', fontData, {
+                    const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta (radius):\nEpsilon:', fontData, {
                         size: 3,
                         resolution: 64, 
                         depth: 0.25
@@ -342,6 +355,8 @@
                 const scene = await createScene();
                 
                 let old_position = BABYLON.Vector3.Zero();
+                let min = 10000;
+                let max = -10000;
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
@@ -385,7 +400,7 @@
                             return curve;
                         }
                         
-                        surfaceCurve.position.y += 0.1;
+                        // surfaceCurve.position.y += 0.1;
                         const newCurve = createCurve(scene, radius, 0.02, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
@@ -401,7 +416,7 @@
                         if (reload_text_ct >5){
                             const textMat = edText.material;
                             edText.dispose();
-                            updated_str = `Delta: ${radius.toFixed(4)}\nEpsilon: ${(max-min).toFixed(4)}`;
+                            updated_str = `Delta (radius): ${radius.toFixed(4)}\nEpsilon: ${(max-min).toFixed(4)}`;
                             const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
                                 size: 3,
                                 resolution: 64, 
@@ -416,6 +431,10 @@
                         
                     };
                     
+                    if (isTriggerPressed && activeControllerMesh) {
+                        sphere.position.copyFrom(activeControllerMesh.getAbsolutePosition());
+                    }
+
                     scene.render();
 
                 });
