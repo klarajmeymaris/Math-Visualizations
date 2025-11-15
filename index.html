@@ -47,12 +47,12 @@
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
                 let func = func0;
-                let min = 10000;
-                let max = -10000;
+                let xrCamera;
                 let reload_curve = false;
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
+
 
                 const createScene = async function () {
                     //scene
@@ -100,7 +100,7 @@
 
                     //moveable point
                     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
-                        diameter: 0.25,        // Full diameter of the sphere
+                        diameter: 0.05,        // Full diameter of the sphere
                         segments: 32        // Number of horizontal segments (higher = smoother)
                         }, scene);
                     sphere.position = new BABYLON.Vector3(0,2,65);
@@ -192,6 +192,7 @@
                         })
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
+                    const teleportation = xrHelper.baseExperience.featuresManager.getEnabledFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -276,10 +277,7 @@
 
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
-                                    if (triggerComponent.pressed) {
-                                        // Detach sphere from any parent
-                                        sphere.setParent(null);
-
+                                    if (triggerComponent) {
                                         // Move sphere to controller position
                                         const controllerMesh = controller.grip || controller.pointer;
                                         if (controllerMesh) {
@@ -287,19 +285,20 @@
                                         }
 
                                     }
+
                                 });
                             };
 
-                            const aButton = motionController.getComponent("a-button");
-                            if (aButton) {
-                                aButton.onButtonStateChangedObservable.add(() => {
-                                    if (aButton.changes.pressed && aButton.pressed) {
-                                        const userPos = xrHelper.baseExperience.camera.position;
-                                        sphere.position = userPos.clone(); 
-                                    }
-                                });
+                            // const aButton = motionController.getComponent("a-button");
+                            // if (aButton) {
+                            //     aButton.onButtonStateChangedObservable.add(() => {
+                            //         // if (aButton.changes.pressed && aButton.pressed) {
+                            //         //     const userPos = xrHelper.baseExperience.camera.position;
+                            //         //     sphere.position = userPos.clone(); 
+                            //         // }
+                            //     });
 
-                            };
+                            // };
 
                             const bButton = motionController.getComponent("b-button");
                             if (bButton) {
@@ -351,12 +350,19 @@
                 const scene = await createScene();
                 
                 let old_position = BABYLON.Vector3.Zero();
+                let old_cameraPos = BABYLON.Vector3.Zero();
+                let min = 10000;
+                let max = -10000;
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
+                    if (!old_cameraPos.equals(xrCamera.position)){
+                        old_cameraPos = xrCamera.position.clone();
+                        xrCamera.position.y -=1.5;
+                    };
                     
                     // Rebuild the curve with the new radius
                     if (!old_position.equals(sphere.position)){
@@ -398,7 +404,7 @@
                         const newCurve = createCurve(scene, radius, 0.02, func);
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         newCurve.position.y = 0.1;
-                        sphere.position.y = func(sphere.position.x,sphere.position.z)+0.5
+                        sphere.position.y = func(sphere.position.x,sphere.position.z);
 
                         //relaod text now
                         reload_text = true;
