@@ -51,8 +51,6 @@
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
-                let isTriggerPressed = false;
-                let activeControllerMesh = null;
 
 
                 const createScene = async function () {
@@ -193,6 +191,14 @@
                         })
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
+                    const teleportation = xrHelper.baseExperience.featuresManager.getEnabledFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
+                    if (teleportation) {
+                        teleportation.onAfterTeleportationObservable.add(() => {
+                            // Lower the camera height after teleport
+                            xrHelper.baseExperience.camera.position.y -= 1.5;
+                        });
+                    }
+
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -278,17 +284,12 @@
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
                                     if (triggerComponent) {
-                                        triggerComponent.onButtonStateChangedObservable.add(() => {
-                                            isTriggerPressed = triggerComponent.pressed;
+                                        // Move sphere to controller position
+                                        const controllerMesh = controller.grip || controller.pointer;
+                                        if (controllerMesh) {
+                                            sphere.position.copyFrom(controllerMesh.getAbsolutePosition());
+                                        }
 
-                                            if (isTriggerPressed) {
-                                                // Store the controller mesh to track
-                                                activeControllerMesh = controller.grip || controller.pointer;
-                                            } else {
-                                                // Stop tracking when trigger is released
-                                                activeControllerMesh = null;
-                                            }
-                                        });
                                     }
 
                                 });
@@ -297,10 +298,10 @@
                             const aButton = motionController.getComponent("a-button");
                             if (aButton) {
                                 aButton.onButtonStateChangedObservable.add(() => {
-                                    if (aButton.changes.pressed && aButton.pressed) {
-                                        const userPos = xrHelper.baseExperience.camera.position;
-                                        sphere.position = userPos.clone(); 
-                                    }
+                                    // if (aButton.changes.pressed && aButton.pressed) {
+                                    //     const userPos = xrHelper.baseExperience.camera.position;
+                                    //     sphere.position = userPos.clone(); 
+                                    // }
                                 });
 
                             };
@@ -431,10 +432,6 @@
                         
                     };
                     
-                    if (isTriggerPressed && activeControllerMesh) {
-                        sphere.position.copyFrom(activeControllerMesh.getAbsolutePosition());
-                    }
-
                     scene.render();
 
                 });
