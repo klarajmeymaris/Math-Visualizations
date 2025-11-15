@@ -405,10 +405,9 @@
                             return curve;
                         }
                         
-                        // surfaceCurve.position.y += 0.1;
                         const newCurve = createCurve(scene, radius, 0.02, func);
+                        newCurve.edgesWidth = 10;
                         newCurve.name = 'deltaCurve'; // Replace old curve
-                        newCurve.position.y = 0.1;
                         sphere.position.y = func(sphere.position.x,sphere.position.z);
 
                         //relaod text now
