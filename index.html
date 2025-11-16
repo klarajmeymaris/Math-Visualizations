@@ -46,6 +46,7 @@
                 const func1 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001))
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
+                const points = [func0(0,0),[func1(0,0.01),func1(0.01,0), (func1(0,0.01)+func1(0.01,0))/2]];
                 let func = func0;
                 let xrCamera;
                 let reload_curve = false;
@@ -53,7 +54,7 @@
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
                 let epsilon = 2;
-                let y_point = 24;
+                let y_point = points[0];
 
 
                 const createScene = async function () {
@@ -200,7 +201,7 @@
                     const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
                         diameter: 50,
                         height: epsilon*2},scene);
-                    cylinder.position = new BABYLON.Vector3(0,y_point,0);
+                    cylinder2.position = new BABYLON.Vector3(0,y_point,0);
                     const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
                     cylinderMaterial2.emissiveColor = new BABYLON.Color3(1,0,1);
                     cylinderMaterial2.backFaceCulling = false; 
@@ -231,7 +232,6 @@
                         return curve
                     }
                     const surfaceCurve = createCurve(scene, 10,0.02,func);
-                    // surfaceCurve.position.y += 0.1
                     surfaceCurve.edgesWidth = 4;
                     
                     //line at the origin
@@ -391,7 +391,6 @@
                 
                 let old_position = BABYLON.Vector3.Zero();
                 let old_cameraPos = BABYLON.Vector3.Zero();
-                let old_diamter = 50;
                 let min = 10000;
                 let max = -10000;
                 // run the render loop
@@ -453,8 +452,7 @@
                         reload_text_ct = 0;
 
                         // update cylinder radius
-                        const scaleFactor = radius / old_diamter; 
-                        old_diamter = radius;
+                        const scaleFactor = radius / 50; 
                         cylinder.scaling.x = scaleFactor;
                         cylinder.scaling.z = scaleFactor;
                         cylinder2.scaling.x = scaleFactor;
