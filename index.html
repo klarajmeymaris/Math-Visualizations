@@ -46,12 +46,16 @@
                 const func1 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001))
                         + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
                 const funcs = [func0, func1];
+                const points = [func0(0,0),[func1(0,0.01),func1(0.01,0), (func1(0,0.01)+func1(0.01,0))/2]];
                 let func = func0;
                 let xrCamera;
                 let reload_curve = false;
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
+                let epsilon = 1;
+                let y_point = points[0];
+
 
 
                 const createScene = async function () {
@@ -71,7 +75,7 @@
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
                     camera.attachControl(canvas, true);
-                    camera.target = new BABYLON.Vector3.Zero();
+                    camera.target = new BABYLON.Vector3(-80,30,100);
 
                     //light
                     var light = new BABYLON.PointLight('pointLight',new BABYLON.Vector3(0,80,0),scene);
@@ -100,7 +104,7 @@
 
                     //moveable point
                     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
-                        diameter: 0.05,        // Full diameter of the sphere
+                        diameter: 0.15,        // Full diameter of the sphere
                         segments: 32        // Number of horizontal segments (higher = smoother)
                         }, scene);
                     sphere.position = new BABYLON.Vector3(0,2,65);
@@ -178,12 +182,36 @@
                         graphMaterial.vertexColorEnabled = true;
                         graphMaterial.backFaceCulling = false;
                         graphMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full brightness
-                        // graphMaterial.wireframe = true;
                         graphMesh.material = graphMaterial;
 
                         return graphMesh;
                     };
                     let graph = createGraphMesh(scene, 70, 0.25, func);
+
+                    //epislon, delta cylinder
+                    const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
+                        diameter: 2*65,
+                        height: epsilon*2},scene);
+                    cylinder.position = new BABYLON.Vector3(0,y_point,0);
+                    const cylinderMaterial = new BABYLON.StandardMaterial('cylinderTexture',scene);
+                    cylinderMaterial.diffuseColor = new BABYLON.Color3(1,0,0);
+                    cylinderMaterial.emissiveColor = new BABYLON.Color3(1,1,1);
+                    cylinderMaterial.alpha = 0.2;
+                    // cylinderMaterial.wireframe = true;
+                    cylinderMaterial.backFaceCulling = false;
+
+
+                    const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
+                        diameter: 2*65,
+                        height: 1},scene);
+                    cylinder2.position = new BABYLON.Vector3(0,y_point,0);
+                    const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
+                    cylinderMaterial2.emissiveColor = new BABYLON.Color3(1,0,1);
+                    cylinderMaterial2.backFaceCulling = false; 
+                    cylinderMaterial2.wireframe = true;
+                    cylinder.material = cylinderMaterial;
+                    cylinder2.material = cylinderMaterial2;
+                    
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
@@ -192,7 +220,7 @@
                         })
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
-                    const teleportation = xrHelper.baseExperience.featuresManager.getEnabledFeature(BABYLON.WebXRFeatureName.TELEPORTATION);
+                    xrCamera.target = new BABYLON.Vector3(-80,30,100)
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -208,7 +236,6 @@
                         return curve
                     }
                     const surfaceCurve = createCurve(scene, 10,0.02,func);
-                    // surfaceCurve.position.y += 0.1
                     surfaceCurve.edgesWidth = 4;
                     
                     //line at the origin
@@ -278,11 +305,23 @@
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
                                     if (triggerComponent) {
-                                        // Move sphere to controller position
-                                        const controllerMesh = controller.grip || controller.pointer;
-                                        if (controllerMesh) {
-                                            sphere.position.copyFrom(controllerMesh.getAbsolutePosition());
+                                        const pointerMesh = controller.pointer;
+
+                                        if (pointerMesh) {
+                                            const origin = pointerMesh.getAbsolutePosition();
+                                            const forward = pointerMesh.forward.scale(10); // Extend ray
+                                            const direction = forward.normalize();
+
+                                            const ray = new BABYLON.Ray(origin, direction, 20);
+
+                                            // Raycast only against your custom surface
+                                            const hit = scene.pickWithRay(ray, (mesh) => mesh === graph);
+
+                                            if (hit && hit.hit && hit.pickedPoint) {
+                                                sphere.position.copyFrom(hit.pickedPoint);
+                                            }
                                         }
+
 
                                     }
 
@@ -312,6 +351,9 @@
                                         graph.dispose();
                                         graph = createGraphMesh(scene, 70, 0.25, func);
                                         xrHelper.teleportation.addFloorMesh(graph);
+
+                                        //recrate cylinders
+                                        // y_point = points;
                                     }
                                 });
 
@@ -319,8 +361,8 @@
                         });
                     });
             
-                    const infoLabel = "           VR Controls\n- Joystick: Teleportantion\n"+
-                                        "- A: Teleport sphere\n- B: Switch graphs";
+                    const infoLabel = "           VR Controls\n- Joystick: Teleportation\n- Trigger: Move delta sphere\n"+
+                                        "- A: ______\n- B: Switch graphs";
                     const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
                         size: 3,
                         resolution: 64, 
@@ -333,6 +375,29 @@
                     infoText.material = textMat;
                     infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                     infoText.position = new BABYLON.Vector3(50,60,-100);
+
+                    const goalText = BABYLON.MeshBuilder.CreateText("goalText", 'Point in Question: (0,24)\nArbitrary Epsilon Goal: 1', fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    goalText.material = textMat;
+                    goalText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    goalText.position = new BABYLON.Vector3(0,80,-100);
+
+                    const instructionText = '           Instructions\n'+
+                                            '-----------------------------------\n'+
+                                            'Full intructions complete later :)\n'+
+                                            'Notes: Pointer is getting caught up on the wire\n'+
+                                            '   frame makeing it hard to know where the sphere will go'
+                    const instructions = BABYLON.MeshBuilder.CreateText("instructions", instructionText, fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    instructions.material = textMat;
+                    instructions.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    instructions.position = new BABYLON.Vector3(-150,50,120);
 
                     const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta (radius):\nEpsilon:', fontData, {
                         size: 3,
@@ -357,12 +422,14 @@
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
+                    const cylinder = scene.getMeshByName('cylinder');
+                    const cylinder2 = scene.getMeshByName('cylinder2');
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
-                    if (!old_cameraPos.equals(xrCamera.position)){
-                        old_cameraPos = xrCamera.position.clone();
-                        xrCamera.position.y -=1.5;
-                    };
+                    // if (!old_cameraPos.equals(xrCamera.position)){
+                    //     xrCamera.position.y -=1.5;
+                    //     old_cameraPos = xrCamera.position.clone();
+                    // };
                     
                     // Rebuild the curve with the new radius
                     if (!old_position.equals(sphere.position)){
@@ -400,23 +467,32 @@
                             return curve;
                         }
                         
-                        // surfaceCurve.position.y += 0.1;
                         const newCurve = createCurve(scene, radius, 0.02, func);
+                        newCurve.edgesWidth = 10;
                         newCurve.name = 'deltaCurve'; // Replace old curve
-                        newCurve.position.y = 0.1;
                         sphere.position.y = func(sphere.position.x,sphere.position.z);
 
                         //relaod text now
                         reload_text = true;
                         reload_text_ct = 0;
+
+                        // update cylinder radius
+                        const scaleFactor = radius / 65; 
+                        cylinder.scaling.x = scaleFactor+1/65;
+                        cylinder.scaling.z = scaleFactor+1/65;
+                        cylinder2.scaling.x = scaleFactor;
+                        cylinder2.scaling.z = scaleFactor;
+                        cylinder2.position = new BABYLON.Vector3(0,(max+min)/2,0);
+                        cylinder2.scaling.y = (max-min);
+
                     };
                     // updates text
                     if (reload_text){
                         reload_text_ct +=1;
-                        if (reload_text_ct >5){
+                        if (reload_text_ct >10){
                             const textMat = edText.material;
                             edText.dispose();
-                            updated_str = `Delta (radius): ${radius.toFixed(4)}\nEpsilon: ${(max-min).toFixed(4)}`;
+                            updated_str = `Delta (radius): ${radius.toFixed(4)}\n_______: ${(max-min).toFixed(4)}`;
                             const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
                                 size: 3,
                                 resolution: 64, 
