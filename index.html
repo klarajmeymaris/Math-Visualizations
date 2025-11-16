@@ -74,7 +74,7 @@
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
                     camera.attachControl(canvas, true);
-                    camera.target = new BABYLON.Vector3.Zero();
+                    camera.target = new BABYLON.Vector3(-80,30,100);
 
                     //light
                     var light = new BABYLON.PointLight('pointLight',new BABYLON.Vector3(0,80,0),scene);
@@ -202,7 +202,7 @@
 
                     const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
                         diameter: 2*65,
-                        height: epsilon*2},scene);
+                        height: 1},scene);
                     cylinder2.position = new BABYLON.Vector3(0,y_point,0);
                     const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
                     cylinderMaterial2.emissiveColor = new BABYLON.Color3(1,0,1);
@@ -219,6 +219,7 @@
                         })
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
+                    xrCamera.target = new BABYLON.Vector3(-80,30,100)
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -303,11 +304,6 @@
                             if (triggerComponent) {
                                 triggerComponent.onButtonStateChangedObservable.add(() => {
                                     if (triggerComponent) {
-                                        // // Move sphere to controller position
-                                        // const controllerMesh = controller.grip || controller.pointer;
-                                        // if (controllerMesh) {
-                                        //     sphere.position.copyFrom(controllerMesh.getAbsolutePosition());
-                                        // }
                                         const pointerMesh = controller.pointer;
 
                                         if (pointerMesh) {
@@ -315,7 +311,7 @@
                                             const forward = pointerMesh.forward.scale(10); // Extend ray
                                             const direction = forward.normalize();
 
-                                            const ray = new BABYLON.Ray(origin, direction, 10);
+                                            const ray = new BABYLON.Ray(origin, direction, 20);
 
                                             // Raycast only against your custom surface
                                             const hit = scene.pickWithRay(ray, (mesh) => mesh === graph);
@@ -364,8 +360,8 @@
                         });
                     });
             
-                    const infoLabel = "           VR Controls\n- Joystick: Teleportantion\n"+
-                                        "- A: Teleport sphere\n- B: Switch graphs";
+                    const infoLabel = "           VR Controls\n- Joystick: Teleportation\n- Trigger: Move delta sphere\n"+
+                                        "- A: ______\n- B: Switch graphs";
                     const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
                         size: 3,
                         resolution: 64, 
@@ -378,6 +374,27 @@
                     infoText.material = textMat;
                     infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                     infoText.position = new BABYLON.Vector3(50,60,-100);
+
+                    const goalText = BABYLON.MeshBuilder.CreateText("goalText", 'Point in Question: (0,24)\nArbitrary Epsilon Goal: 2', fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    goalText.material = textMat;
+                    goalText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    goalText.position = new BABYLON.Vector3(0,80,-100);
+
+                    const instructionText = '         Instructions\n'+
+                                            '-----------------------------------\n'+
+                                            'Full intructions complete later :)'
+                    const instructions = BABYLON.MeshBuilder.CreateText("instructions", instructionText, fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    instructions.material = textMat;
+                    instructions.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    instructions.position = new BABYLON.Vector3(-150,50,120);
 
                     const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta (radius):\nEpsilon:', fontData, {
                         size: 3,
@@ -458,8 +475,8 @@
 
                         // update cylinder radius
                         const scaleFactor = radius / 65; 
-                        cylinder.scaling.x = scaleFactor+1;
-                        cylinder.scaling.z = scaleFactor+1;
+                        cylinder.scaling.x = scaleFactor+1/65;
+                        cylinder.scaling.z = scaleFactor+1/65;
                         cylinder2.scaling.x = scaleFactor;
                         cylinder2.scaling.z = scaleFactor;
                         cylinder2.position = new BABYLON.Vector3(0,(max+min)/2,0);
@@ -472,7 +489,7 @@
                         if (reload_text_ct >10){
                             const textMat = edText.material;
                             edText.dispose();
-                            updated_str = `Delta (radius): ${radius.toFixed(4)}\nEpsilon: ${(max-min).toFixed(4)}`;
+                            updated_str = `Delta (radius): ${radius.toFixed(4)}\n_______: ${(max-min).toFixed(4)}`;
                             const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
                                 size: 3,
                                 resolution: 64, 
