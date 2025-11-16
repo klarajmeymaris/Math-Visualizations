@@ -103,7 +103,7 @@
 
                     //moveable point
                     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
-                        diameter: 0.1,        // Full diameter of the sphere
+                        diameter: 0.15,        // Full diameter of the sphere
                         segments: 32        // Number of horizontal segments (higher = smoother)
                         }, scene);
                     sphere.position = new BABYLON.Vector3(0,2,65);
@@ -189,17 +189,19 @@
 
                     //epislon, delta cylinder
                     const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
-                        diameter: 65,
+                        diameter: 2*65,
                         height: epsilon*2},scene);
                     cylinder.position = new BABYLON.Vector3(0,y_point,0);
                     const cylinderMaterial = new BABYLON.StandardMaterial('cylinderTexture',scene);
                     cylinderMaterial.diffuseColor = new BABYLON.Color3(1,0,0);
-                    cylinderMaterial.emissiveColor = new BABYLON.Color3(1,0,1);
+                    cylinderMaterial.emissiveColor = new BABYLON.Color3(1,1,1);
                     cylinderMaterial.alpha = 0.2;
-                    cylinderMaterial.backFaceCulling = false; 
+                    // cylinderMaterial.wireframe = true;
+                    cylinderMaterial.backFaceCulling = false;
+
 
                     const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
-                        diameter: 65,
+                        diameter: 2*65,
                         height: epsilon*2},scene);
                     cylinder2.position = new BABYLON.Vector3(0,y_point,0);
                     const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
@@ -456,8 +458,8 @@
 
                         // update cylinder radius
                         const scaleFactor = radius / 65; 
-                        // cylinder.scaling.x = scaleFactor;
-                        // cylinder.scaling.z = scaleFactor;
+                        cylinder.scaling.x = scaleFactor+1;
+                        cylinder.scaling.z = scaleFactor+1;
                         cylinder2.scaling.x = scaleFactor;
                         cylinder2.scaling.z = scaleFactor;
                         cylinder2.position = new BABYLON.Vector3(0,(max+min)/2,0);
