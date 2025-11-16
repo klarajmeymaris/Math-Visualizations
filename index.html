@@ -189,7 +189,7 @@
 
                     //epislon, delta cylinder
                     const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
-                        diameter: 50,
+                        diameter: 65,
                         height: epsilon*2},scene);
                     cylinder.position = new BABYLON.Vector3(0,y_point,0);
                     const cylinderMaterial = new BABYLON.StandardMaterial('cylinderTexture',scene);
@@ -199,7 +199,7 @@
                     cylinderMaterial.backFaceCulling = false; 
 
                     const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
-                        diameter: 50,
+                        diameter: 65,
                         height: epsilon*2},scene);
                     cylinder2.position = new BABYLON.Vector3(0,y_point,0);
                     const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
@@ -352,6 +352,9 @@
                                         graph.dispose();
                                         graph = createGraphMesh(scene, 70, 0.25, func);
                                         xrHelper.teleportation.addFloorMesh(graph);
+
+                                        //recrate cylinders
+                                        // y_point = points;
                                     }
                                 });
 
@@ -452,11 +455,13 @@
                         reload_text_ct = 0;
 
                         // update cylinder radius
-                        const scaleFactor = radius / 50; 
-                        cylinder.scaling.x = scaleFactor;
-                        cylinder.scaling.z = scaleFactor;
+                        const scaleFactor = radius / 65; 
+                        // cylinder.scaling.x = scaleFactor;
+                        // cylinder.scaling.z = scaleFactor;
                         cylinder2.scaling.x = scaleFactor;
                         cylinder2.scaling.z = scaleFactor;
+                        cylinder2.position = new BABYLON.Vector3(0,(max+min)/2,0);
+                        cylinder2.scaling.y = (max-min)/2;
 
                     };
                     // updates text
