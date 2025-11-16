@@ -53,7 +53,7 @@
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
-                let epsilon = 2;
+                let epsilon = 1;
                 let y_point = points[0];
 
 
@@ -375,7 +375,7 @@
                     infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                     infoText.position = new BABYLON.Vector3(50,60,-100);
 
-                    const goalText = BABYLON.MeshBuilder.CreateText("goalText", 'Point in Question: (0,24)\nArbitrary Epsilon Goal: 2', fontData, {
+                    const goalText = BABYLON.MeshBuilder.CreateText("goalText", 'Point in Question: (0,24)\nArbitrary Epsilon Goal: 1', fontData, {
                         size: 3,
                         resolution: 64, 
                         depth: 0.25
