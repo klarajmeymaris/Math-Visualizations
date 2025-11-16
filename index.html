@@ -384,9 +384,11 @@
                     goalText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                     goalText.position = new BABYLON.Vector3(0,80,-100);
 
-                    const instructionText = '         Instructions\n'+
+                    const instructionText = '           Instructions\n'+
                                             '-----------------------------------\n'+
-                                            'Full intructions complete later :)'
+                                            'Full intructions complete later :)\n'+
+                                            'Notes: Pointer is getting caught up on the wire\n'+
+                                            '   frame makeing it hard to know where the sphere will go'
                     const instructions = BABYLON.MeshBuilder.CreateText("instructions", instructionText, fontData, {
                         size: 3,
                         resolution: 64, 
@@ -480,7 +482,7 @@
                         cylinder2.scaling.x = scaleFactor;
                         cylinder2.scaling.z = scaleFactor;
                         cylinder2.position = new BABYLON.Vector3(0,(max+min)/2,0);
-                        cylinder2.scaling.y = (max-min)/2;
+                        cylinder2.scaling.y = (max-min);
 
                     };
                     // updates text
