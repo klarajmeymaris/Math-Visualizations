@@ -52,6 +52,8 @@
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
+                let epsilon = 2;
+                let y_point = 24;
 
 
                 const createScene = async function () {
@@ -100,7 +102,7 @@
 
                     //moveable point
                     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
-                        diameter: 0.05,        // Full diameter of the sphere
+                        diameter: 0.1,        // Full diameter of the sphere
                         segments: 32        // Number of horizontal segments (higher = smoother)
                         }, scene);
                     sphere.position = new BABYLON.Vector3(0,2,65);
@@ -178,12 +180,34 @@
                         graphMaterial.vertexColorEnabled = true;
                         graphMaterial.backFaceCulling = false;
                         graphMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full brightness
-                        // graphMaterial.wireframe = true;
                         graphMesh.material = graphMaterial;
 
                         return graphMesh;
                     };
                     let graph = createGraphMesh(scene, 70, 0.25, func);
+
+                    //epislon, delta cylinder
+                    const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
+                        diameter: 50,
+                        height: epsilon*2},scene);
+                    cylinder.position = new BABYLON.Vector3(0,y_point,0);
+                    const cylinderMaterial = new BABYLON.StandardMaterial('cylinderTexture',scene);
+                    cylinderMaterial.diffuseColor = new BABYLON.Color3(1,0,0);
+                    cylinderMaterial.emissiveColor = new BABYLON.Color3(1,0,1);
+                    cylinderMaterial.alpha = 0.2;
+                    cylinderMaterial.backFaceCulling = false; 
+
+                    const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
+                        diameter: 50,
+                        height: epsilon*2},scene);
+                    cylinder.position = new BABYLON.Vector3(0,y_point,0);
+                    const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
+                    cylinderMaterial2.emissiveColor = new BABYLON.Color3(1,0,1);
+                    cylinderMaterial2.backFaceCulling = false; 
+                    cylinderMaterial2.wireframe = true;
+                    cylinder.material = cylinderMaterial;
+                    cylinder2.material = cylinderMaterial2;
+                    
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
@@ -367,12 +391,15 @@
                 
                 let old_position = BABYLON.Vector3.Zero();
                 let old_cameraPos = BABYLON.Vector3.Zero();
+                let old_diamter = 50;
                 let min = 10000;
                 let max = -10000;
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
+                    const cylinder = scene.getMeshByName('cylinder');
+                    const cylinder2 = scene.getMeshByName('cylinder2');
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
                     // if (!old_cameraPos.equals(xrCamera.position)){
@@ -424,11 +451,20 @@
                         //relaod text now
                         reload_text = true;
                         reload_text_ct = 0;
+
+                        // update cylinder radius
+                        const scaleFactor = radius / old_diamter; 
+                        old_diamter = radius;
+                        cylinder.scaling.x = scaleFactor;
+                        cylinder.scaling.z = scaleFactor;
+                        cylinder2.scaling.x = scaleFactor;
+                        cylinder2.scaling.z = scaleFactor;
+
                     };
                     // updates text
                     if (reload_text){
                         reload_text_ct +=1;
-                        if (reload_text_ct >5){
+                        if (reload_text_ct >10){
                             const textMat = edText.material;
                             edText.dispose();
                             updated_str = `Delta (radius): ${radius.toFixed(4)}\nEpsilon: ${(max-min).toFixed(4)}`;
