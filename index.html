@@ -285,7 +285,18 @@
                                         const pointerMesh = controller.pointer;
 
                                         if (pointerMesh) {
-                                            sphere.position.copyFrom(pointerMesh.getAbsolutePosition());
+                                            const origin = pointerMesh.getAbsolutePosition();
+                                            const forward = pointerMesh.forward.scale(10); // Extend ray
+                                            const direction = forward.normalize();
+
+                                            const ray = new BABYLON.Ray(origin, direction, 10);
+
+                                            // Raycast only against your custom surface
+                                            const hit = scene.pickWithRay(ray, (mesh) => mesh === graph);
+
+                                            if (hit && hit.hit && hit.pickedPoint) {
+                                                sphere.position.copyFrom(hit.pickedPoint);
+                                            }
                                         }
 
 
