@@ -53,16 +53,16 @@
                 const funcs = [func0, func1, func2,func3,func4,func5];
                 const points = [func0(0,0),func1(0.01,0), func2(0,0),50,func4(0,0),func5(0,0.1)];
                 let func = func0;
-                const functionNames = ['Continuous Function 1', 'Discontinuous Function 1', 'Continuous Function 2', 
-                    'Infinite Discontinuous Function', 'Jump Discontinuous Function', 'Essential Discontinuous Function'
-                ]
+                const functionNames = ['Continuous Function 1', 'Essential Discontinuous Function 1', 'Continuous Function 2', 
+                    'Infinite Discontinuous Function', 'Jump Discontinuous Function', 'Essential Discontinuous Function 2'
+                ];
                 let xrCamera;
                 let reload_curve = false;
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
                 
-                const epsilons = [10,5,1,0.5,0.01]
+                const epsilons = [10,5,1,0.5,0.1,0.01, 0.001]
                 let epsilon = epsilons[0];
                 epsilon_num = 0;
                 let y_point = points[0];
@@ -82,9 +82,9 @@
                     dome.rotation.x = Math.PI;
 
                     //camera
-                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
+                    const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,15,85), scene);
                     camera.attachControl(canvas, true);
-                    camera.target = new BABYLON.Vector3(-80,30,100);
+                    camera.target = new BABYLON.Vector3(0,0,0);
 
                     //light
                     var light = new BABYLON.PointLight('pointLight',new BABYLON.Vector3(0,80,0),scene);
@@ -94,7 +94,7 @@
                         radius: 500, 
                         tessellation: 64 // smoothness of the edge
                         }, scene);
-                    ground.rotation.x = Math.PI / 2; // lay it flat
+                    ground.rotation.x = Math.PI / 2; 
                     ground.position = new BABYLON.Vector3(0,-5,0);
                     const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                     groundMaterial.alpha = 0.4;
@@ -104,7 +104,7 @@
 
                     //starting platform
                     const platform = BABYLON.CreateGround('platform',{width: 5, height:5},scene);
-                    platform.position = new BABYLON.Vector3(0,5,83);
+                    platform.position = new BABYLON.Vector3(0,13,85);
                     const platMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                     platMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
                     platMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
@@ -113,7 +113,7 @@
 
                     //moveable point
                     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
-                        diameter: 0.15,        // Full diameter of the sphere (do 0.15, 3 for keyboard)
+                        diameter: 0.15,        //    Full diameter of the sphere (do 0.15, 3 for keyboard)
                         segments: 32        // Number of horizontal segments (higher = smoother)
                         }, scene);
                     sphere.position = new BABYLON.Vector3(0,2,65);
@@ -148,7 +148,6 @@
                         }
 
                         // Generate triangle indices
-
                         for (let row = 0; row < rows - 1; row++) {
                             for (let col = 0; col < cols - 1; col++) {
                                 const i0 = row * cols + col;
@@ -163,15 +162,23 @@
 
                             }
                         }
-
                         // Assign vertex colors based on height
                         for (let i = 0; i < graphPositions.length; i += 3) {
                             const y = graphPositions[i + 1];
                             const t = (y - minY) / (maxY - minY);
-                            const r = t;
-                            const g = 0.2;
-                            const b = 1 - t;
-                            graphColors.push(r, g, b, 1);
+                            // const r = t;
+                            // const g = 0.2;
+                            // const b = 1 - t;
+                            // Hue goes from 0 (red) to 1 (wraps back to red)
+                            const hue = 330-Math.pow(t,1/3)*330; 
+                            const saturation = 1.0;
+                            const value = t/3+0.6;
+
+                            const color = BABYLON.Color3.FromHSV(hue, saturation, value);
+
+                            graphColors.push(color.r, color.g, color.b, 1);
+
+                            // graphColors.push(r, g, b, 1);
                         }
 
                         // Compute normals and apply to mesh
@@ -191,6 +198,7 @@
                         graphMaterial.vertexColorEnabled = true;
                         graphMaterial.backFaceCulling = false;
                         graphMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // Full brightness
+                        
                         graphMesh.material = graphMaterial;
 
                         return graphMesh;
@@ -238,7 +246,7 @@
                         })
                     xrCamera = xrHelper.baseExperience.camera;
                     xrCamera.position = new BABYLON.Vector3(0,7,83);
-                    xrCamera.target = new BABYLON.Vector3(-80,30,100)
+                    xrCamera.target = new BABYLON.Vector3(0,0,0);
                     
                     // delta curve
                     function createCurve(scene, radius, step, heightFunction){
@@ -272,16 +280,16 @@
                         depth: 0.25
                     });
                     const textMat = new BABYLON.PBRMaterial("textMat", scene);
-                    textMat.emissiveColor = new BABYLON.Color3(1, 1, 1); // bright white glow
+                    textMat.emissiveColor = new BABYLON.Color3(1, 1, 1); 
                     textMat.metallic = 0;
                     textMat.roughness = 1;
                     infoText.material = textMat;
                     infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    infoText.position = new BABYLON.Vector3(50,60,-100);
+                    infoText.position = new BABYLON.Vector3(80,60,-100);
                     
                     //function text
                     let functionText = BABYLON.MeshBuilder.CreateText("functionText", 'Continuous Function 1', fontData, {
-                        size: 3,
+                        size: 5,
                         resolution: 64, 
                         depth: 0.25
                     });
@@ -296,7 +304,7 @@
                     });
                     edText.material = textMat;
                     edText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    edText.position = new BABYLON.Vector3(-50,30,-100);
+                    edText.position = new BABYLON.Vector3(-80,30,-100);
 
                     // keyboard input
                     camera.keysUp.push(87);
@@ -315,7 +323,7 @@
                                 if (kbInfo.event.key === "n"){
                                     // Reset sphere and camera
                                     sphere.position =  new BABYLON.Vector3(0,2,65);
-                                    camera.position = new BABYLON.Vector3(0,7,83);
+                                    camera.position = new BABYLON.Vector3(0,30,100);
                                     camera.target = new BABYLON.Vector3.Zero();
 
                                     // Update surface
@@ -447,7 +455,7 @@
                                     if (bButton.changes.pressed && bButton.pressed) {                                        
                                         // Reset sphere and camera
                                         sphere.position =  new BABYLON.Vector3(0,2,65);
-                                        camera.position = new BABYLON.Vector3(0,7,83);
+                                        camera.position = new BABYLON.Vector3(0,30,100);
                                         camera.target = new BABYLON.Vector3.Zero();
 
                                         // Update surface
@@ -478,7 +486,7 @@
                                         functionText.dispose();
                                         functionName = functionNames[func_num];
                                         functionText = BABYLON.MeshBuilder.CreateText("functionText", functionName, fontData, {
-                                            size: 3,
+                                            size: 5,
                                             resolution: 64, 
                                             depth: 0.25
                                         });
@@ -590,8 +598,6 @@
 
                         // update cylinder radius
                         const scaleFactor = radius / 65; 
-                        // epsilonCylinder.scaling.x = scaleFactor+1/65;
-                        // epsilonCylinder.scaling.z = scaleFactor+1/65;
                         cylinder.scaling.x = scaleFactor;
                         cylinder.scaling.z = scaleFactor;
                         cylinder.position = new BABYLON.Vector3(0,(max+min)/2,0);
@@ -639,7 +645,7 @@
                             });
                             newText.material = textMat;
                             newText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                            newText.position = new BABYLON.Vector3(-50,60,-100); 
+                            newText.position = new BABYLON.Vector3(-80,60,-100); 
                             reload_text = false; 
                             reload_text_ct = 0;
                         }
