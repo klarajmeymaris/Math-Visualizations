@@ -41,21 +41,31 @@
                 let positionLabel;
                 //functions
                 let func_num = 0;
-                const func0 = (x, z) => Math.pow(Math.cos((x*x+z*z)/100),2)*20*Math.exp((-x*x-z*z)/500)
+                const func0 = (x, z) => Math.pow(Math.cos((x*x+z*z)/100),2)*20*Math.exp((-x*x-z*z)/500) //constinuous 1
                                 + 5*Math.exp((-x*x-z*z)/500);
-                const func1 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001))
-                        + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x+z));
-                const funcs = [func0, func1];
-                const points = [func0(0,0),[func1(0,0.01),func1(0.01,0), (func1(0,0.01)+func1(0.01,0))/2]];
+                const func1 = (x, z) => 20*(x*x)/((x+0.0001)*(x+0.0001)+(z+0.0001)*(z+0.0001)) //disconstinuous
+                        + Math.sqrt(Math.abs(x))*Math.sin(1/4*(x-z));
+                const func2 = (x,z) => (Math.cos((x+Math.PI*2)/3)+Math.cos(z/3)+1.5)*5 + 
+                                                        (Math.cos((x+Math.PI*2)/6)+Math.cos(z/6)+1.5)*5; //constinuous 2
+                const func3 = (x,z) => 50/(x*x+0.001); //disconstinuous infinite
+                const func4 = (x,z) => ((z-20)*(z-20)/100)*(x>=0) + x*x/100*(x<0); //disconstinuous jump
+                const func5 = (x,z) => 10*Math.sin(10000/(x*x+z*z+0.001))+5; //disconstinuous essential
+                const funcs = [func0, func1, func2,func3,func4,func5];
+                const points = [func0(0,0),func1(0.01,0), func2(0,0),50,func4(0,0),func5(0,0.1)];
                 let func = func0;
+                const functionNames = ['Continuous Function 1', 'Discontinuous Function 1', 'Continuous Function 2', 
+                    'Infinite Discontinuous Function', 'Jump Discontinuous Function', 'Essential Discontinuous Function'
+                ]
                 let xrCamera;
                 let reload_curve = false;
                 let reload_text = false;
                 let reload_text_ct = 0;
                 var fontData = await (await fetch("https://assets.babylonjs.com/fonts/Droid Sans_Regular.json")).json();
-                let epsilon = 1;
+                
+                const epsilons = [10,5,1,0.5,0.01]
+                let epsilon = epsilons[0];
+                epsilon_num = 0;
                 let y_point = points[0];
-
 
 
                 const createScene = async function () {
@@ -64,13 +74,12 @@
                     scene.clearColor = new BABYLON.Color3(0.05, 0.04, 0.15);
 
                     const dome = BABYLON.MeshBuilder.CreateSphere("starDome", { diameter: 1000, sideOrientation: BABYLON.Mesh.BACKSIDE }, scene);
-                    const domeMat = new BABYLON.StandardMaterial("domeMat", scene);
+                    const domeMat = new BABYLON.StandardMaterial("domeMat", scene);                    
                     domeMat.diffuseTexture = new BABYLON.Texture("https://images-assets.nasa.gov/image/PIA15415/PIA15415~medium.jpg", scene);
                     domeMat.backFaceCulling = false;
                     domeMat.specularColor = new BABYLON.Color3(0,0,0);
                     dome.material = domeMat;
                     dome.rotation.x = Math.PI;
-                    // dome.rotation.z = Math.PI/2;
 
                     //camera
                     const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0,7,83), scene);
@@ -104,7 +113,7 @@
 
                     //moveable point
                     const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {
-                        diameter: 0.15,        // Full diameter of the sphere
+                        diameter: 0.15,        // Full diameter of the sphere (do 0.15, 3 for keyboard)
                         segments: 32        // Number of horizontal segments (higher = smoother)
                         }, scene);
                     sphere.position = new BABYLON.Vector3(0,2,65);
@@ -188,30 +197,39 @@
                     };
                     let graph = createGraphMesh(scene, 70, 0.25, func);
 
-                    //epislon, delta cylinder
-                    const cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {
-                        diameter: 2*65,
-                        height: epsilon*2},scene);
+                    //the change in values cylinder
+                    function createCylinder(scene, hgt, rad, name){
+                        //epislon, delta cylinder
+                        const cylinder = BABYLON.MeshBuilder.CreateCylinder(name, {
+                            diameter: 2*rad,
+                            height: hgt,
+                            tessellation: 40},scene);
+                        
+                        const cylinderMaterial = new BABYLON.StandardMaterial('cylinderTexture',scene);
+                        cylinderMaterial.emissiveColor = new BABYLON.Color3(1,0.2,1);
+                        cylinderMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+                        cylinderMaterial.backFaceCulling = false; 
+                        cylinderMaterial.wireframe = true;
+                        cylinder.material = cylinderMaterial;
+                        return cylinder
+                    }
+                    let cylinder = createCylinder(scene,1,65,'cylinder');
                     cylinder.position = new BABYLON.Vector3(0,y_point,0);
-                    const cylinderMaterial = new BABYLON.StandardMaterial('cylinderTexture',scene);
-                    cylinderMaterial.diffuseColor = new BABYLON.Color3(1,0,0);
-                    cylinderMaterial.emissiveColor = new BABYLON.Color3(1,1,1);
-                    cylinderMaterial.alpha = 0.2;
-                    // cylinderMaterial.wireframe = true;
-                    cylinderMaterial.backFaceCulling = false;
-
-
-                    const cylinder2 = BABYLON.MeshBuilder.CreateCylinder("cylinder2", {
-                        diameter: 2*65,
-                        height: 1},scene);
-                    cylinder2.position = new BABYLON.Vector3(0,y_point,0);
-                    const cylinderMaterial2 = new BABYLON.StandardMaterial('cylinderTexture',scene);
-                    cylinderMaterial2.emissiveColor = new BABYLON.Color3(1,0,1);
-                    cylinderMaterial2.backFaceCulling = false; 
-                    cylinderMaterial2.wireframe = true;
-                    cylinder.material = cylinderMaterial;
-                    cylinder2.material = cylinderMaterial2;
                     
+                    //the epslion planes
+                    const plane1 = BABYLON.MeshBuilder.CreatePlane("plane1", {size: 20}, scene);
+                    const plane2 = BABYLON.MeshBuilder.CreatePlane("plane2", {size: 20}, scene);
+                    const planeMaterial = new BABYLON.StandardMaterial('planeMaterial',scene);
+                    planeMaterial.diffuseColor = new BABYLON.Color3(0,0,0);
+                    planeMaterial.emissiveColor = new BABYLON.Color3(0.3,0,0);
+                    planeMaterial.backFaceCulling = false;
+                    planeMaterial.alpha = 0.7;
+                    plane1.material = planeMaterial;
+                    plane2.material = planeMaterial;
+                    plane1.position = new BABYLON.Vector3(0, y_point+epsilon, 0);
+                    plane1.rotation.x = Math.PI / 2;
+                    plane2.position = new BABYLON.Vector3(0, y_point-epsilon, 0);
+                    plane2.rotation.x = Math.PI / 2;
 
                     //vr set up
                     const xrHelper = await scene.createDefaultXRExperienceAsync({
@@ -239,11 +257,46 @@
                     surfaceCurve.edgesWidth = 4;
                     
                     //line at the origin
-                    const points = [
+                    const linePoints = [
                         new BABYLON.Vector3(0, 0, 0),
                         new BABYLON.Vector3(0, 50, 0),
                         ];
-                    const line = BABYLON.MeshBuilder.CreateLines("line", { points: points }, scene);
+                    const line = BABYLON.MeshBuilder.CreateLines("line", { points: linePoints }, scene);
+
+                    //control text
+                    const infoLabel = "           VR Controls\n- Joystick(forward): Teleportation\n- Trigger: Move delta sphere\n"+
+                                        "- A: Change Epsilon\n- B: Switch graphs";
+                    const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    const textMat = new BABYLON.PBRMaterial("textMat", scene);
+                    textMat.emissiveColor = new BABYLON.Color3(1, 1, 1); // bright white glow
+                    textMat.metallic = 0;
+                    textMat.roughness = 1;
+                    infoText.material = textMat;
+                    infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    infoText.position = new BABYLON.Vector3(50,60,-100);
+                    
+                    //function text
+                    let functionText = BABYLON.MeshBuilder.CreateText("functionText", 'Continuous Function 1', fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    functionText.material = textMat;
+                    functionText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    functionText.position = new BABYLON.Vector3(0,100,-100);
+
+                    const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta (radius):\nEpsilon:', fontData, {
+                        size: 3,
+                        resolution: 64, 
+                        depth: 0.25
+                    });
+                    edText.material = textMat;
+                    edText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    edText.position = new BABYLON.Vector3(-50,30,-100);
 
                     // keyboard input
                     camera.keysUp.push(87);
@@ -260,20 +313,62 @@
                                     camera.cameraDirection.y -= 0.2;
                                 }
                                 if (kbInfo.event.key === "n"){
-                                    func_num = (func_num + 1) % funcs.length;
-                                    func = funcs[func_num];
+                                    // Reset sphere and camera
                                     sphere.position =  new BABYLON.Vector3(0,2,65);
                                     camera.position = new BABYLON.Vector3(0,7,83);
                                     camera.target = new BABYLON.Vector3.Zero();
+
+                                    // Update surface
+                                    func_num = (func_num + 1) % funcs.length;
+                                    func = funcs[func_num];
                                     graph.dispose();
                                     graph = createGraphMesh(scene, 70, 0.25, func);
                                     
-                                };
+                                    // Update cylinder
+                                    y_point = points[func_num];
+                                    cylinder.dispose();
+                                    cylinder = createCylinder(scene,1,65,'cylinder');
+                                    cylinder.position = new BABYLON.Vector3(0,y_point,0);
+                                    
+                                    //update eplsilon planes
+                                    epsilon = epsilons[0];
+                                    epsilon_num = 0;
+                                    planeMaterial.emissiveColor = new BABYLON.Color3(0.3,0,0)
+                                    plane1.material = planeMaterial;
+                                    plane2.material = planeMaterial;
+                                    plane1.position = new BABYLON.Vector3(0,y_point+epsilon,0);
+                                    plane2.position = new BABYLON.Vector3(0,y_point-epsilon,0);
+                                    reload_curve = true;
+                                    
+                                    //update text
+                                    functionText.dispose();
+                                    functionName = functionNames[func_num];
+                                    functionText = BABYLON.MeshBuilder.CreateText("functionText", functionName, fontData, {
+                                        size: 3,
+                                        resolution: 64, 
+                                        depth: 0.25
+                                    });
+                                    functionText.material = textMat;
+                                    functionText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                                    functionText.position = new BABYLON.Vector3(0,100,-100);
+
+                                    };
+                                if (kbInfo.event.key == "m"){
+                                    //update eplsilon planes
+                                    epsilon_num = (epsilon_num+1)% epsilons.length;
+                                    epsilon = epsilons[epsilon_num];
+                                    planeMaterial.emissiveColor = new BABYLON.Color3(0.3,0,0)
+                                    plane1.material = planeMaterial;
+                                    plane2.material = planeMaterial;
+                                    plane1.position = new BABYLON.Vector3(0,y_point+epsilon,0);
+                                    plane2.position = new BABYLON.Vector3(0,y_point-epsilon,0);
+                                    reload_curve = true;
+                                }
                                 break;
                         }
                     });
                     camera.inputs.attached.mouse.buttons = [0]; // Only respond to left-click
-
+                
                     // Drag logic for keyboard
                     let isDragging = false;
                     let dragPlane = BABYLON.MeshBuilder.CreatePlane("dragPlane", { size: 100 }, scene);
@@ -328,86 +423,106 @@
                                 });
                             };
 
-                            // const aButton = motionController.getComponent("a-button");
-                            // if (aButton) {
-                            //     aButton.onButtonStateChangedObservable.add(() => {
-                            //         // if (aButton.changes.pressed && aButton.pressed) {
-                            //         //     const userPos = xrHelper.baseExperience.camera.position;
-                            //         //     sphere.position = userPos.clone(); 
-                            //         // }
-                            //     });
+                            const aButton = motionController.getComponent("a-button");
+                            if (aButton) {
+                                aButton.onButtonStateChangedObservable.add(() => {
+                                    if (aButton.changes.pressed && aButton.pressed) {
+                                        //update eplsilon planes
+                                        epsilon_num = (epsilon_num+1)% epsilons.length;
+                                        epsilon = epsilons[epsilon_num];
+                                        planeMaterial.emissiveColor = new BABYLON.Color3(0.3,0,0)
+                                        plane1.material = planeMaterial;
+                                        plane2.material = planeMaterial;
+                                        plane1.position = new BABYLON.Vector3(0,y_point+epsilon,0);
+                                        plane2.position = new BABYLON.Vector3(0,y_point-epsilon,0);
+                                        reload_curve = true;
+                                    }
+                                });
 
-                            // };
+                            };
 
                             const bButton = motionController.getComponent("b-button");
                             if (bButton) {
                                 bButton.onButtonStateChangedObservable.add(() => {
-                                    if (bButton.changes.pressed && bButton.pressed) {
+                                    if (bButton.changes.pressed && bButton.pressed) {                                        
+                                        // Reset sphere and camera
+                                        sphere.position =  new BABYLON.Vector3(0,2,65);
+                                        camera.position = new BABYLON.Vector3(0,7,83);
+                                        camera.target = new BABYLON.Vector3.Zero();
+
+                                        // Update surface
+                                        xrHelper.teleportation.removeFloorMesh(graph);
                                         func_num = (func_num + 1) % funcs.length;
                                         func = funcs[func_num];
-                                        sphere.position =  new BABYLON.Vector3(0,2,65);
-                                        xrCamera.position = new BABYLON.Vector3(0,7,83);
-                                        xrHelper.teleportation.removeFloorMesh(graph);
                                         graph.dispose();
                                         graph = createGraphMesh(scene, 70, 0.25, func);
                                         xrHelper.teleportation.addFloorMesh(graph);
+                                        
+                                        // Update cylinder
+                                        y_point = points[func_num];
+                                        cylinder.dispose();
+                                        cylinder = createCylinder(scene,1,65,'cylinder');
+                                        cylinder.position = new BABYLON.Vector3(0,y_point,0);
+                                        
+                                        //update eplsilon planes
+                                        epsilon = epsilons[0];
+                                        epsilon_num =0;
+                                        planeMaterial.emissiveColor = new BABYLON.Color3(0.3,0,0)
+                                        plane1.material = planeMaterial;
+                                        plane2.material = planeMaterial;
+                                        plane1.position = new BABYLON.Vector3(0,y_point+epsilon,0);
+                                        plane2.position = new BABYLON.Vector3(0,y_point-epsilon,0);
+                                        reload_curve = true;
 
-                                        //recrate cylinders
-                                        // y_point = points;
+                                        //update text
+                                        functionText.dispose();
+                                        functionName = functionNames[func_num];
+                                        functionText = BABYLON.MeshBuilder.CreateText("functionText", functionName, fontData, {
+                                            size: 3,
+                                            resolution: 64, 
+                                            depth: 0.25
+                                        });
+                                        functionText.material = textMat;
+                                        functionText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                                        functionText.position = new BABYLON.Vector3(0,100,-100);
                                     }
                                 });
 
                             };
                         });
                     });
-            
-                    const infoLabel = "           VR Controls\n- Joystick: Teleportation\n- Trigger: Move delta sphere\n"+
-                                        "- A: ______\n- B: Switch graphs";
-                    const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
-                        size: 3,
-                        resolution: 64, 
-                        depth: 0.25
-                    });
-                    const textMat = new BABYLON.PBRMaterial("textMat", scene);
-                    textMat.emissiveColor = new BABYLON.Color3(1, 1, 1); // bright white glow
-                    textMat.metallic = 0;
-                    textMat.roughness = 1;
-                    infoText.material = textMat;
-                    infoText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    infoText.position = new BABYLON.Vector3(50,60,-100);
 
-                    const goalText = BABYLON.MeshBuilder.CreateText("goalText", 'Point in Question: (0,24)\nArbitrary Epsilon Goal: 1', fontData, {
-                        size: 3,
-                        resolution: 64, 
-                        depth: 0.25
-                    });
-                    goalText.material = textMat;
-                    goalText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    goalText.position = new BABYLON.Vector3(0,80,-100);
+                    // const instructionText = ('                           Instructions\n'+
+                    //                         '------------------------------------------------------------------------\n'+
+                    //                         '*Your goal is to determine if the function(surface) is continuous at the \n'+
+                    //                         '    point (0,0)- where the vertical white line is.\n\n'+
+                    //                         '*To do this you will explore the epsilon-delta proof.\n\n'+
+                    //                         '*If the function is continuous, then for all epsilons (vertical distances \n'+
+                    //                         '    from function at (0,0)) you can find a delta (a radius around (0,0))\n'+
+                    //                         '    where the height of the function within delta from (0,0) is within\n'+
+                    //                         '    epsilon from the function at (0,0).\n\n'+
+                    //                         '*If the function is not continuoue at (0,0), then for one of the epsilons,\n'+
+                    //                         '    you will not be able to find a delta where the height of the function is\n'+
+                    //                         '    larger than epsilon away.\n\n'+
+                    //                         '*The pink wireframe cylinder represents the range of hights of points. The \n'+
+                    //                         '    red planes represent epsilon away from the function at (0,0).\n\n'+
+                    //                         '*So, your want to get the top and bottom of the cylinder within the red\n'+
+                    //                         '    planes, by changing the radius (delta) of the cylinder.\n\n'+
+                    //                         '*If you are successful for an epsilon, then the planes will turn green! If this\n'+
+                    //                         '    is impossible, then the function is discontinuoues!\n\n'+
+                    //                         '*Try this out for a few functions and a few epsilons! Controls are to your left.\n');
+                                            
+                    // const instructions = BABYLON.MeshBuilder.CreateText("instructions", instructionText, fontData, {
+                    //     size: 3,
+                    //     resolution: 64, 
+                    //     depth: 0.25
+                    // });
+                    // instructions.material = textMat;
+                    // instructions.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                    // instructions.position = new BABYLON.Vector3(-200,0,120);
 
-                    const instructionText = '           Instructions\n'+
-                                            '-----------------------------------\n'+
-                                            'Full intructions complete later :)\n'+
-                                            'Notes: Pointer is getting caught up on the wire\n'+
-                                            '   frame makeing it hard to know where the sphere will go'
-                    const instructions = BABYLON.MeshBuilder.CreateText("instructions", instructionText, fontData, {
-                        size: 3,
-                        resolution: 64, 
-                        depth: 0.25
-                    });
-                    instructions.material = textMat;
-                    instructions.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    instructions.position = new BABYLON.Vector3(-150,50,120);
-
-                    const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta (radius):\nEpsilon:', fontData, {
-                        size: 3,
-                        resolution: 64, 
-                        depth: 0.25
-                    });
-                    edText.material = textMat;
-                    edText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    edText.position = new BABYLON.Vector3(-50,60,-100);
-
+                    //Function text
+                
                     return scene;
                 }
 
@@ -418,23 +533,20 @@
                 let old_cameraPos = BABYLON.Vector3.Zero();
                 let min = 10000;
                 let max = -10000;
+                let reload_success = 0;
                 // run the render loop
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
+                    const epsilonCylinder = scene.getMeshByName('epsilonCylinder');
                     const cylinder = scene.getMeshByName('cylinder');
-                    const cylinder2 = scene.getMeshByName('cylinder2');
                     const surfaceCurve = scene.getMeshByName('deltaCurve');
                     const edText = scene.getMeshByName('edText');
-                    // if (!old_cameraPos.equals(xrCamera.position)){
-                    //     xrCamera.position.y -=1.5;
-                    //     old_cameraPos = xrCamera.position.clone();
-                    // };
                     
                     // Rebuild the curve with the new radius
                     if (!old_position.equals(sphere.position)){
                         reload_curve = true;
-                        old_position = sphere.position.clone();
+                        old_position = sphere.position.clone();                        
                     }
                     if (reload_curve){
                         reload_curve = 0;
@@ -449,14 +561,14 @@
                                 const z = radius*Math.sin(theta);
                                 const y = heightFunction(x,z); 
                                 surface_points.push(new BABYLON.Vector3(x,y,z))
-                                for (rad=0.01; rad< radius; rad +=0.5){
+                                for (rad=0.01; rad<= radius+0.2; rad +=0.2){
                                     const x = rad*Math.cos(theta);
                                     const z = rad*Math.sin(theta);
                                     const y = heightFunction(x,z);
-                                    if (y < min-0.01){
+                                    if (y < min){
                                         min = y;
                                     };
-                                    if (y > max+0.01){
+                                    if (y > max){
                                         max = y;
                                     };
                                 };
@@ -478,12 +590,39 @@
 
                         // update cylinder radius
                         const scaleFactor = radius / 65; 
-                        cylinder.scaling.x = scaleFactor+1/65;
-                        cylinder.scaling.z = scaleFactor+1/65;
-                        cylinder2.scaling.x = scaleFactor;
-                        cylinder2.scaling.z = scaleFactor;
-                        cylinder2.position = new BABYLON.Vector3(0,(max+min)/2,0);
-                        cylinder2.scaling.y = (max-min);
+                        // epsilonCylinder.scaling.x = scaleFactor+1/65;
+                        // epsilonCylinder.scaling.z = scaleFactor+1/65;
+                        cylinder.scaling.x = scaleFactor;
+                        cylinder.scaling.z = scaleFactor;
+                        cylinder.position = new BABYLON.Vector3(0,(max+min)/2,0);
+                        cylinder.scaling.y = (max-min);
+                        
+                        //changes the color of the epslion planes if min and max within epsilon values
+                        if ((max < y_point+epsilon) && (min > y_point-epsilon) ){
+                            const plane1 = scene.getMeshByName('plane1');
+                            const plane2 = scene.getMeshByName('plane2');
+                            const planeMaterial = scene.getMaterialByName('planeMaterial');
+                            planeMaterial.emissiveColor = new BABYLON.Color3(0,0.3,0)
+                            plane1.material = planeMaterial;
+                            plane2.material = planeMaterial;
+
+                            // const completedText = BABYLON.MeshBuilder.CreateText("completedText", 'Success!', fontData, {
+                            //     size: 0.8,
+                            //     resolution: 64, 
+                            //     depth: 0.25
+                            // });
+                            // completedTextMat = new  BABYLON.StandardMaterial('completedTextMat',scene);
+                            // completedTextMat.emissiveColor = new BABYLON.Color3(0,0.6,0);
+                            // completedText.material = completedTextMat;
+                            // completedText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+                            // completedText.position = new BABYLON.Vector3(0,y_point+1,0); 
+                        } 
+                        // else{
+                        //     const completedText = scene.getMeshByName('completedText');
+                        //     if (completedText && reload_success){
+                        //         completedText.dispose();
+                        //     }
+                        // }
 
                     };
                     // updates text
@@ -492,7 +631,7 @@
                         if (reload_text_ct >10){
                             const textMat = edText.material;
                             edText.dispose();
-                            updated_str = `Delta (radius): ${radius.toFixed(4)}\n_______: ${(max-min).toFixed(4)}`;
+                            updated_str = `Delta (radius): ${radius.toFixed(4)}\nRange of heights: ${min.toFixed(4)} to ${max.toFixed(4)}`;
                             const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
                                 size: 3,
                                 resolution: 64, 
@@ -504,8 +643,8 @@
                             reload_text = false; 
                             reload_text_ct = 0;
                         }
-                        
                     };
+                    
                     
                     scene.render();
 
