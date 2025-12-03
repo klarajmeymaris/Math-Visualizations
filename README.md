@@ -40,7 +40,8 @@
 
 ### Controls  
 - **Thumbstick / Joystick** → Teleport: push forward, aim at the desired spot, then release to move  
-- **Pointer Trigger** → Adjust delta (radius) at the location you’re pointing  
+- **Pointer Trigger** → Adjust delta (radius) at the location you’re pointing
+     - Half hold trigger for best results
 - **A Button** → Modify epsilon (height range)  
 - **B Button** → Switch between different graphs  
 
