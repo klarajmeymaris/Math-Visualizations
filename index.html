@@ -49,9 +49,9 @@
                                                         (Math.cos((x+Math.PI*2)/6)+Math.cos(z/6)+1.5)*5; //constinuous 2
                 const func3 = (x,z) => 50/(x*x+0.001); //disconstinuous infinite
                 const func4 = (x,z) => ((z-20)*(z-20)/100)*(x>=0) + x*x/100*(x<0); //disconstinuous jump
-                const func5 = (x,z) => 10*Math.sin(10000/(x*x+z*z+0.001))+5; //disconstinuous essential
+                const func5 = (x,z) => 10*Math.sin(500/(Math.sqrt(x*x+z*z)+0.001))+5; //disconstinuous essential
                 const funcs = [func0, func1, func2,func3,func4,func5];
-                const points = [func0(0,0),func1(0.01,0), func2(0,0),50,func4(0,0),func5(0,0.1)];
+                const points = [func0(0,0),func1(0.01,0), func2(0,0),50,func4(0,0),15];
                 let func = func0;
                 const functionNames = ['Continuous Function 1', 'Essential Discontinuous Function 1', 'Continuous Function 2', 
                     'Infinite Discontinuous Function', 'Jump Discontinuous Function', 'Essential Discontinuous Function 2'
@@ -272,7 +272,7 @@
                     const line = BABYLON.MeshBuilder.CreateLines("line", { points: linePoints }, scene);
 
                     //control text
-                    const infoLabel = "           VR Controls\n- Joystick(forward): Teleportation\n- Trigger: Move delta sphere\n"+
+                    const infoLabel = "           VR Controls\n- Thumbstick: Teleportation\n- Trigger: Change delta"+
                                         "- A: Change Epsilon\n- B: Switch graphs";
                     const infoText = BABYLON.MeshBuilder.CreateText("infoText", infoLabel, fontData, {
                         size: 3,
@@ -296,15 +296,6 @@
                     functionText.material = textMat;
                     functionText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
                     functionText.position = new BABYLON.Vector3(0,100,-100);
-
-                    const edText = BABYLON.MeshBuilder.CreateText("edText", 'Delta (radius):\nEpsilon:', fontData, {
-                        size: 3,
-                        resolution: 64, 
-                        depth: 0.25
-                    });
-                    edText.material = textMat;
-                    edText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    edText.position = new BABYLON.Vector3(-80,30,-100);
 
                     // keyboard input
                     camera.keysUp.push(87);
@@ -499,37 +490,6 @@
                             };
                         });
                     });
-
-                    // const instructionText = ('                           Instructions\n'+
-                    //                         '------------------------------------------------------------------------\n'+
-                    //                         '*Your goal is to determine if the function(surface) is continuous at the \n'+
-                    //                         '    point (0,0)- where the vertical white line is.\n\n'+
-                    //                         '*To do this you will explore the epsilon-delta proof.\n\n'+
-                    //                         '*If the function is continuous, then for all epsilons (vertical distances \n'+
-                    //                         '    from function at (0,0)) you can find a delta (a radius around (0,0))\n'+
-                    //                         '    where the height of the function within delta from (0,0) is within\n'+
-                    //                         '    epsilon from the function at (0,0).\n\n'+
-                    //                         '*If the function is not continuoue at (0,0), then for one of the epsilons,\n'+
-                    //                         '    you will not be able to find a delta where the height of the function is\n'+
-                    //                         '    larger than epsilon away.\n\n'+
-                    //                         '*The pink wireframe cylinder represents the range of hights of points. The \n'+
-                    //                         '    red planes represent epsilon away from the function at (0,0).\n\n'+
-                    //                         '*So, your want to get the top and bottom of the cylinder within the red\n'+
-                    //                         '    planes, by changing the radius (delta) of the cylinder.\n\n'+
-                    //                         '*If you are successful for an epsilon, then the planes will turn green! If this\n'+
-                    //                         '    is impossible, then the function is discontinuoues!\n\n'+
-                    //                         '*Try this out for a few functions and a few epsilons! Controls are to your left.\n');
-                                            
-                    // const instructions = BABYLON.MeshBuilder.CreateText("instructions", instructionText, fontData, {
-                    //     size: 3,
-                    //     resolution: 64, 
-                    //     depth: 0.25
-                    // });
-                    // instructions.material = textMat;
-                    // instructions.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                    // instructions.position = new BABYLON.Vector3(-200,0,120);
-
-                    //Function text
                 
                     return scene;
                 }
@@ -541,8 +501,7 @@
                 let old_cameraPos = BABYLON.Vector3.Zero();
                 let min = 10000;
                 let max = -10000;
-                let reload_success = 0;
-                // run the render loop
+
                 engine.runRenderLoop(function () {
                     const sphere = scene.getMeshByName('sphere');
                     const radius = Math.sqrt(sphere.position.x*sphere.position.x + sphere.position.z*sphere.position.z);
@@ -592,10 +551,6 @@
                         newCurve.name = 'deltaCurve'; // Replace old curve
                         sphere.position.y = func(sphere.position.x,sphere.position.z);
 
-                        //relaod text now
-                        reload_text = true;
-                        reload_text_ct = 0;
-
                         // update cylinder radius
                         const scaleFactor = radius / 65; 
                         cylinder.scaling.x = scaleFactor;
@@ -612,43 +567,8 @@
                             plane1.material = planeMaterial;
                             plane2.material = planeMaterial;
 
-                            // const completedText = BABYLON.MeshBuilder.CreateText("completedText", 'Success!', fontData, {
-                            //     size: 0.8,
-                            //     resolution: 64, 
-                            //     depth: 0.25
-                            // });
-                            // completedTextMat = new  BABYLON.StandardMaterial('completedTextMat',scene);
-                            // completedTextMat.emissiveColor = new BABYLON.Color3(0,0.6,0);
-                            // completedText.material = completedTextMat;
-                            // completedText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                            // completedText.position = new BABYLON.Vector3(0,y_point+1,0); 
                         } 
-                        // else{
-                        //     const completedText = scene.getMeshByName('completedText');
-                        //     if (completedText && reload_success){
-                        //         completedText.dispose();
-                        //     }
-                        // }
 
-                    };
-                    // updates text
-                    if (reload_text){
-                        reload_text_ct +=1;
-                        if (reload_text_ct >10){
-                            const textMat = edText.material;
-                            edText.dispose();
-                            updated_str = `Delta (radius): ${radius.toFixed(4)}\nRange of heights: ${min.toFixed(4)} to ${max.toFixed(4)}`;
-                            const newText = BABYLON.MeshBuilder.CreateText("edText", updated_str, fontData, {
-                                size: 3,
-                                resolution: 64, 
-                                depth: 0.25
-                            });
-                            newText.material = textMat;
-                            newText.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-                            newText.position = new BABYLON.Vector3(-80,60,-100); 
-                            reload_text = false; 
-                            reload_text_ct = 0;
-                        }
                     };
                     
                     
