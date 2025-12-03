@@ -446,8 +446,8 @@
                                     if (bButton.changes.pressed && bButton.pressed) {                                        
                                         // Reset sphere and camera
                                         sphere.position =  new BABYLON.Vector3(0,2,65);
-                                        camera.position = new BABYLON.Vector3(0,30,100);
-                                        camera.target = new BABYLON.Vector3.Zero();
+                                        xrCamera.position = new BABYLON.Vector3(0,30,100);
+                                        xrCamera.target = new BABYLON.Vector3.Zero();
 
                                         // Update surface
                                         xrHelper.teleportation.removeFloorMesh(graph);
